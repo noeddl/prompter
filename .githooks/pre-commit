@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -e
+
+echo 'Run clippy ...'
+cargo clippy
+
+echo 'Run rustfmt ...'
+
+RUSTFMT_CONFIG="group_imports=StdExternalCrate,imports_granularity=Crate"
+
+for rust_file in $(git diff --name-only --cached | grep ".*\.rs$"); do
+    rustfmt +nightly --config $RUSTFMT_CONFIG $rust_file
+    git add $rust_file
+done
