@@ -60,7 +60,7 @@ impl fmt::Display for InputError {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Constraint {
     AtPos((usize, char)),
     NotAtPos((usize, char)),
@@ -68,6 +68,15 @@ pub enum Constraint {
 }
 
 impl Constraint {
+    pub fn values(i: usize, c: char) -> impl Iterator<Item = Constraint> {
+        [
+            Constraint::AtPos((i, c)),
+            Constraint::NotAtPos((i, c)),
+            Constraint::Absent(c),
+        ]
+        .into_iter()
+    }
+
     pub fn is_match(&self, word: &Word) -> bool {
         use Constraint::*;
 
@@ -138,6 +147,10 @@ impl Word {
 
     pub fn is_heterogram(&self) -> bool {
         self.distinct_chars().count() == self.0.len()
+    }
+
+    pub fn all_constraints(&self) -> impl Iterator<Item = impl Iterator<Item = Constraint>> + '_ {
+        self.0.char_indices().map(|(i, c)| Constraint::values(i, c))
     }
 
     pub fn is_match(&self, constraint: Constraint) -> bool {
@@ -265,5 +278,22 @@ mod tests {
         let word = Word::from(w);
 
         assert_eq!(word.is_heterogram(), is_heterogram);
+    }
+
+    #[test]
+    fn test_all_constraints() {
+        use Constraint::*;
+
+        let word = Word::from("hej");
+
+        let obs: Vec<Vec<_>> = word.all_constraints().map(|iter| iter.collect()).collect();
+
+        let exp = vec![
+            vec![AtPos((0, 'h')), NotAtPos((0, 'h')), Absent('h')],
+            vec![AtPos((1, 'e')), NotAtPos((1, 'e')), Absent('e')],
+            vec![AtPos((2, 'j')), NotAtPos((2, 'j')), Absent('j')],
+        ];
+
+        assert_eq!(obs, exp);
     }
 }
