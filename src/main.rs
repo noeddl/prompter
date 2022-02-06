@@ -68,7 +68,7 @@ pub enum Constraint {
 }
 
 impl Constraint {
-    pub fn matches(&self, word: &Word) -> bool {
+    pub fn is_match(&self, word: &Word) -> bool {
         use Constraint::*;
 
         match self {
@@ -83,8 +83,8 @@ impl Constraint {
 pub struct ConstraintSet(Vec<Constraint>);
 
 impl ConstraintSet {
-    pub fn matches(&self, word: &Word) -> bool {
-        self.0.iter().all(|c| c.matches(word))
+    pub fn is_match(&self, word: &Word) -> bool {
+        self.0.iter().all(|c| c.is_match(word))
     }
 }
 
@@ -140,7 +140,7 @@ impl Word {
         self.distinct_chars().count() == self.0.len()
     }
 
-    pub fn matches(&self, constraint: Constraint) -> bool {
+    pub fn is_match(&self, constraint: Constraint) -> bool {
         use Constraint::*;
 
         match constraint {
@@ -181,7 +181,7 @@ impl Wordlist {
     }
 
     pub fn filter(self, constraints: &ConstraintSet) -> impl Iterator<Item = Word> + '_ {
-        self.into_iter().filter(|w| constraints.matches(w))
+        self.into_iter().filter(|w| constraints.is_match(w))
     }
 }
 
