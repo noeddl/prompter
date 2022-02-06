@@ -153,6 +153,14 @@ impl Word {
         self.0.char_indices().map(|(i, c)| Constraint::values(i, c))
     }
 
+    pub fn all_constraint_combinations(&self) -> impl Iterator<Item = Vec<Constraint>> {
+        self.all_constraints()
+            .map(|iter| iter.collect::<Vec<_>>())
+            .collect::<Vec<_>>()
+            .into_iter()
+            .multi_cartesian_product()
+    }
+
     pub fn is_match(&self, constraint: Constraint) -> bool {
         use Constraint::*;
 
@@ -295,5 +303,26 @@ mod tests {
         ];
 
         assert_eq!(obs, exp);
+    }
+
+    #[test]
+    fn test_all_constraint_combinations() {
+        use Constraint::*;
+
+        let word = Word::from("hi");
+
+        let exp = vec![
+            vec![AtPos((0, 'h')), AtPos((1, 'i'))],
+            vec![AtPos((0, 'h')), NotAtPos((1, 'i'))],
+            vec![AtPos((0, 'h')), Absent('i')],
+            vec![NotAtPos((0, 'h')), AtPos((1, 'i'))],
+            vec![NotAtPos((0, 'h')), NotAtPos((1, 'i'))],
+            vec![NotAtPos((0, 'h')), Absent('i')],
+            vec![Absent('h'), AtPos((1, 'i'))],
+            vec![Absent('h'), NotAtPos((1, 'i'))],
+            vec![Absent('h'), Absent('i')],
+        ];
+
+        assert_eq!(word.all_constraint_combinations().collect::<Vec<_>>(), exp);
     }
 }
