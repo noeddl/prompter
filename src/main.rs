@@ -174,16 +174,6 @@ impl Word {
 
         non_zero_count as f32 / self.all_constraint_combinations().count() as f32
     }
-
-    pub fn is_match(&self, constraint: Constraint) -> bool {
-        use Constraint::*;
-
-        match constraint {
-            AtPos((i, c)) => self.char(i) == c,
-            NotAtPos((i, c)) => self.char(i) != c && self.contains(c),
-            Absent(c) => !self.contains(c),
-        }
-    }
 }
 
 impl<S: AsRef<str>> From<S> for Word {
