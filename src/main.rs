@@ -34,6 +34,8 @@ fn main() {
         }
 
         println!("{} candidate words left", wordlist.len());
+
+        println!("{:?}", wordlist.best_next_word());
     }
 }
 
@@ -161,6 +163,18 @@ impl Word {
             .multi_cartesian_product()
     }
 
+    pub fn filter_potential(&self, wordlist: &Wordlist) -> f32 {
+        let non_zero_count = self
+            .all_constraint_combinations()
+            .map(|constraints| wordlist.filter_ref(&ConstraintSet(constraints)).count())
+            .filter(|&count| count > 0)
+            .count();
+
+        println!("{} {}", self, non_zero_count);
+
+        non_zero_count as f32 / self.all_constraint_combinations().count() as f32
+    }
+
     pub fn is_match(&self, constraint: Constraint) -> bool {
         use Constraint::*;
 
@@ -203,6 +217,19 @@ impl Wordlist {
 
     pub fn filter(self, constraints: &ConstraintSet) -> impl Iterator<Item = Word> + '_ {
         self.into_iter().filter(|w| constraints.is_match(w))
+    }
+
+    pub fn filter_ref<'a>(
+        &'a self,
+        constraints: &'a ConstraintSet,
+    ) -> impl Iterator<Item = &'a Word> + '_ {
+        self.iter().filter(|w| constraints.is_match(w))
+    }
+
+    pub fn best_next_word(&self) -> Option<(&Word, f32)> {
+        self.iter()
+            .map(|w| (w, w.filter_potential(self)))
+            .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
     }
 }
 
