@@ -62,7 +62,7 @@ impl fmt::Display for InputError {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Constraint {
     AtPos((usize, char)),
     NotAtPos((usize, char)),
@@ -88,9 +88,19 @@ impl Constraint {
             Absent(c) => !word.contains(*c),
         }
     }
+
+    pub fn matching_variant(w: &Word, i: usize, c: char) -> Constraint {
+        if !w.contains(c) {
+            Constraint::Absent(c)
+        } else if w.char(i) == c {
+            Constraint::AtPos((i, c))
+        } else {
+            Constraint::NotAtPos((i, c))
+        }
+    }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct ConstraintSet(Vec<Constraint>);
 
 impl ConstraintSet {
@@ -163,16 +173,23 @@ impl Word {
             .multi_cartesian_product()
     }
 
-    pub fn filter_potential(&self, wordlist: &Wordlist) -> f32 {
-        let non_zero_count = self
-            .all_constraint_combinations()
-            .map(|constraints| wordlist.filter_ref(&ConstraintSet(constraints)).count())
-            .filter(|&count| count > 0)
-            .count();
+    pub fn matching_constraint_set(&self, w: &Word) -> ConstraintSet {
+        let vec: Vec<_> = self
+            .0
+            .char_indices()
+            .map(|(i, c)| Constraint::matching_variant(w, i, c))
+            .collect();
 
-        println!("{} {}", self, non_zero_count);
+        ConstraintSet(vec)
+    }
 
-        non_zero_count as f32 / self.all_constraint_combinations().count() as f32
+    pub fn filter_potential(&self, wordlist: &Wordlist) -> usize {
+        let constraints: HashSet<_> = wordlist
+            .iter()
+            .map(|w| self.matching_constraint_set(w))
+            .collect();
+
+        constraints.len()
     }
 }
 
@@ -216,10 +233,10 @@ impl Wordlist {
         self.iter().filter(|w| constraints.is_match(w))
     }
 
-    pub fn best_next_word(&self) -> Option<(&Word, f32)> {
+    pub fn best_next_word(&self) -> Option<(&Word, usize)> {
         self.iter()
             .map(|w| (w, w.filter_potential(self)))
-            .max_by(|a, b| a.1.partial_cmp(&b.1).unwrap())
+            .max_by(|a, b| a.1.cmp(&b.1))
     }
 }
 
