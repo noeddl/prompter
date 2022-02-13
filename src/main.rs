@@ -18,6 +18,12 @@ fn main() {
     let mut wordlist = Wordlist::from("data/words.txt");
 
     loop {
+        println!("{} candidate words left", wordlist.len());
+
+        for (w, score) in wordlist.rank_words().take(10) {
+            println!("{} ({})", w, score);
+        }
+
         println!("\nPlease enter the next word.");
         let word = user_input();
 
@@ -28,14 +34,6 @@ fn main() {
         println!("{:?}", constraints);
 
         wordlist = Wordlist::from_iter(wordlist.filter(&constraints.unwrap()));
-
-        for word in &wordlist {
-            println!("{}", word);
-        }
-
-        println!("{} candidate words left", wordlist.len());
-
-        println!("{:?}", wordlist.best_next_word());
     }
 }
 
@@ -237,6 +235,12 @@ impl Wordlist {
         self.iter()
             .map(|w| (w, w.filter_potential(self)))
             .max_by(|a, b| a.1.cmp(&b.1))
+    }
+
+    pub fn rank_words(&self) -> impl Iterator<Item = (&Word, usize)> {
+        self.iter()
+            .map(|w| (w, w.filter_potential(self)))
+            .sorted_by(|a, b| b.1.cmp(&a.1))
     }
 }
 
