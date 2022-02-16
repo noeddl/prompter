@@ -204,7 +204,7 @@ impl Word {
     pub fn filter_potential(&self, wordlist: &Wordlist) -> usize {
         let constraints: HashSet<_> = wordlist.iter().map(|w| self.match_code(w)).collect();
 
-        constraints.len()
+        constraints.len() + self.distinct_chars().count()
     }
 }
 
