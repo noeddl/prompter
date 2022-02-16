@@ -181,11 +181,23 @@ impl Word {
         ConstraintSet(vec)
     }
 
+    pub fn match_code(&self, w: &Word) -> String {
+        self.chars()
+            .zip(w.chars())
+            .map(|(c1, c2)| {
+                if c1 == c2 {
+                    'G'
+                } else if w.contains(c1) {
+                    'Y'
+                } else {
+                    'B'
+                }
+            })
+            .collect()
+    }
+
     pub fn filter_potential(&self, wordlist: &Wordlist) -> usize {
-        let constraints: HashSet<_> = wordlist
-            .iter()
-            .map(|w| self.matching_constraint_set(w))
-            .collect();
+        let constraints: HashSet<_> = wordlist.iter().map(|w| self.match_code(w)).collect();
 
         constraints.len()
     }
