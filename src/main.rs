@@ -20,9 +20,14 @@ fn main() {
     loop {
         println!("{} candidate words left", wordlist.len());
 
+        let start = std::time::Instant::now();
+
         for (w, score) in wordlist.rank_words().take(10) {
             println!("{} ({})", w, score);
         }
+
+        let duration = start.elapsed();
+        println!("Time elapsed for word ranking: {:?}", duration);
 
         println!("\nPlease enter the next word.");
         let word = user_input();
