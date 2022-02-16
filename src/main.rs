@@ -3,7 +3,7 @@ use std::{
     error::Error,
     fmt,
     fs::File,
-    io::{self, BufRead, BufReader},
+    io::{self, BufRead, BufReader, Write},
     iter::FromIterator,
     path::Path,
 };
@@ -85,6 +85,8 @@ fn main() {
 
 fn user_input() -> String {
     let mut buffer = String::new();
+    print!("> ");
+    io::stdout().flush().unwrap();
     io::stdin().read_line(&mut buffer).unwrap();
     buffer.trim().to_string()
 }
