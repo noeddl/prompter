@@ -13,32 +13,73 @@ use itertools::Itertools;
 pub type Alphabet = HashSet<char>;
 
 fn main() {
-    println!("Welcome!");
+    println!("Welcome! Let's play Wordle.");
 
     let mut wordlist = Wordlist::from("data/words.txt");
 
-    loop {
-        println!("{} candidate words left", wordlist.len());
+    for i in 1..=6 {
+        println!(
+            "\n---[ Round #{} ]------------------------------------------------",
+            i
+        );
+
+        let w_count = wordlist.len();
+        println!(
+            "\n{} candidate word{} left.",
+            w_count,
+            if w_count == 1 { "" } else { "s" }
+        );
 
         let start = std::time::Instant::now();
+        let candidates = wordlist.rank_words();
+        let duration = start.elapsed();
 
-        for (w, score) in wordlist.rank_words().take(10) {
+        println!(
+            "\nTop candidate word{}:",
+            if w_count == 1 { "" } else { "s" }
+        );
+
+        for (w, score) in candidates.take(10) {
             println!("{} ({})", w, score);
         }
+        println!("\nTime elapsed for word ranking: {:?}", duration);
 
-        let duration = start.elapsed();
-        println!("Time elapsed for word ranking: {:?}", duration);
+        if wordlist.len() == 1 {
+            println!(
+                "\nCongratulations! You won after {} round{}.",
+                i,
+                if i == 1 { "" } else { "s" }
+            );
+            break;
+        }
 
-        println!("\nPlease enter the next word.");
+        println!(
+            "\nPlease enter your {} word.",
+            if i == 1 { "first" } else { "next" }
+        );
         let word = user_input();
 
-        println!("\nPlease enter Wordle's answer.");
+        println!("\nPlease enter Wordle's answer. (G = Green, Y = Yellow, X = Gray)");
         let colors = user_input();
 
+        if colors.to_uppercase() == "GGGGG" {
+            println!(
+                "\nCongratulations! You won after {} round{}.",
+                i,
+                if i == 1 { "" } else { "s" }
+            );
+            break;
+        }
+
         let constraints = ConstraintSet::try_from((word.as_ref(), colors.as_ref()));
-        println!("{:?}", constraints);
 
         wordlist = Wordlist::from_iter(wordlist.filter(&constraints.unwrap()));
+
+        if wordlist.len() > 1 && i == 6 {
+            println!("\n{} candidate words left.", wordlist.len());
+            println!("\nGame over.");
+            break;
+        }
     }
 }
 
