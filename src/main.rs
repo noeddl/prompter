@@ -129,7 +129,7 @@ impl TryFrom<(&str, &str)> for ConstraintSet {
             let constraint = match color {
                 'G' => Constraint::AtPos((i, c)),
                 'Y' => Constraint::NotAtPos((i, c)),
-                'B' => Constraint::Absent(c),
+                'X' => Constraint::Absent(c),
                 _ => return Err(InputError::InvalidColorCode),
             };
 
@@ -195,7 +195,7 @@ impl Word {
                 } else if w.contains(c1) {
                     'Y'
                 } else {
-                    'B'
+                    'X'
                 }
             })
             .collect()
