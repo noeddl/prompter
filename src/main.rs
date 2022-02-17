@@ -53,16 +53,14 @@ fn main() {
             break;
         }
 
-        println!(
-            "\nPlease enter your {} word.",
-            if i == 1 { "first" } else { "next" }
-        );
-        let word = user_input();
+        let mut constraints = get_contraints(i);
 
-        println!("\nPlease enter Wordle's answer. (G = Green, Y = Yellow, X = Gray)");
-        let colors = user_input();
+        while let Err(error) = constraints {
+            println!("\nError: {}", error);
+            constraints = get_contraints(i);
+        }
 
-        if colors.to_uppercase() == "GGGGG" {
+        if constraints.as_ref().unwrap().correct_word() {
             println!(
                 "\nCongratulations! You won after {} round{}.",
                 i,
@@ -70,8 +68,6 @@ fn main() {
             );
             break;
         }
-
-        let constraints = ConstraintSet::try_from((word.as_ref(), colors.as_ref()));
 
         wordlist = Wordlist::from_iter(wordlist.filter(&constraints.unwrap()));
 
@@ -89,6 +85,19 @@ fn user_input() -> String {
     io::stdout().flush().unwrap();
     io::stdin().read_line(&mut buffer).unwrap();
     buffer.trim().to_string()
+}
+
+fn get_contraints(i: usize) -> Result<ConstraintSet, InputError> {
+    println!(
+        "\nPlease enter your {} word.",
+        if i == 1 { "first" } else { "next" }
+    );
+    let word = user_input();
+
+    println!("\nPlease enter Wordle's answer. (G = Green, Y = Yellow, X = Gray)");
+    let colors = user_input();
+
+    ConstraintSet::try_from((word.as_ref(), colors.as_ref()))
 }
 
 #[derive(Debug)]
@@ -152,6 +161,12 @@ pub struct ConstraintSet(Vec<Constraint>);
 impl ConstraintSet {
     pub fn is_match(&self, word: &Word) -> bool {
         self.0.iter().all(|c| c.is_match(word))
+    }
+
+    pub fn correct_word(&self) -> bool {
+        self.0
+            .iter()
+            .all(|c| matches!(c, Constraint::AtPos((_, _))))
     }
 }
 
