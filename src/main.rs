@@ -262,7 +262,7 @@ impl Word {
     pub fn filter_potential(&self, wordlist: &Wordlist) -> usize {
         let constraints: HashSet<_> = wordlist.iter().map(|w| self.match_code(w)).collect();
 
-        constraints.len() + self.distinct_chars().count()
+        constraints.len()
     }
 }
 
@@ -315,7 +315,9 @@ impl Wordlist {
     pub fn rank_words(&self) -> impl Iterator<Item = (&Word, usize)> {
         self.iter()
             .map(|w| (w, w.filter_potential(self)))
-            .sorted_by(|a, b| b.1.cmp(&a.1))
+            .sorted_by(|a, b| {
+                (b.1, b.0.distinct_chars().count()).cmp(&(a.1, a.0.distinct_chars().count()))
+            })
     }
 }
 
