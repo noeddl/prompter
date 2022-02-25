@@ -18,6 +18,7 @@ const ROUND_NUM: usize = 6;
 
 fn main() {
     play()
+    //simulate(&Word::from("trace"), &Word::from("vivid"))
 }
 
 fn play() {
@@ -71,6 +72,61 @@ fn play() {
         if constraints.as_ref().unwrap().correct_word() {
             println!(
                 "\nCongratulations! You won after {} round{}.",
+                i,
+                if i == 1 { "" } else { "s" }
+            );
+            break;
+        }
+
+        wordlist = Wordlist::from_iter(wordlist.filter(&constraints.unwrap()));
+
+        if wordlist.len() > 1 && i == ROUND_NUM {
+            println!("\n{} candidate words left.", wordlist.len());
+            println!("\nGame over.");
+            break;
+        }
+    }
+}
+
+fn simulate(start: &Word, target: &Word) {
+    let mut wordlist = Wordlist::from("data/words.txt");
+
+    for i in 1..=ROUND_NUM {
+        println!(
+            "\n---[ Round #{} ]------------------------------------------------",
+            i
+        );
+
+        let w_count = wordlist.len();
+        println!(
+            "\n{} candidate word{} left.",
+            w_count,
+            if w_count == 1 { "" } else { "s" }
+        );
+
+        let w = match i {
+            1 => start,
+            _ => wordlist.rank_words().next().unwrap().0,
+        };
+
+        println!("Top candidate word: {}", w);
+
+        if wordlist.len() == 1 {
+            println!(
+                "\nI won after {} round{}.",
+                i,
+                if i == 1 { "" } else { "s" }
+            );
+            break;
+        }
+
+        let color_code = w.match_code(target);
+
+        let constraints = ConstraintSet::try_from((w.0.as_ref(), color_code.as_ref()));
+
+        if constraints.as_ref().unwrap().correct_word() {
+            println!(
+                "\nI won after {} round{}.",
                 i,
                 if i == 1 { "" } else { "s" }
             );
