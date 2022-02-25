@@ -10,6 +10,9 @@ use std::{
 
 use itertools::Itertools;
 
+/// Length of the word to be guessed.
+const WORD_LEN: usize = 5;
+
 /// Number of rounds to play.
 const ROUND_NUM: usize = 6;
 
@@ -95,23 +98,37 @@ fn get_contraints(i: usize) -> Result<ConstraintSet, InputError> {
     );
     let word = user_input();
 
+    if word.len() != WORD_LEN {
+        return Err(InputError::IncorrectWordLength);
+    }
+
     println!("\nPlease enter Wordle's answer. (G = Green, Y = Yellow, X = Gray)");
     let colors = user_input();
+
+    if colors.len() != WORD_LEN {
+        return Err(InputError::IncorrectColorCodeLength);
+    }
 
     ConstraintSet::try_from((word.as_ref(), colors.as_ref()))
 }
 
 #[derive(Debug)]
 pub enum InputError {
-    InvalidColorCode,
+    InvalidColorCode(char),
+    IncorrectWordLength,
+    IncorrectColorCodeLength,
 }
 
 impl Error for InputError {}
 
 impl fmt::Display for InputError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use InputError::*;
+
         let s = match self {
-            InputError::InvalidColorCode => "Invalid color code",
+            InvalidColorCode(c) => format!("Invalid color code character '{}'", c),
+            IncorrectWordLength => format!("Word must be {} characters long", WORD_LEN),
+            IncorrectColorCodeLength => format!("Color code must be {} characters long", WORD_LEN),
         };
 
         write!(f, "{}", s)
@@ -178,7 +195,7 @@ impl TryFrom<(&str, &str)> for ConstraintSet {
                 'G' => Constraint::AtPos(i, c),
                 'Y' => Constraint::NotAtPos(i, c),
                 'X' => Constraint::Absent(c),
-                _ => return Err(InputError::InvalidColorCode),
+                c => return Err(InputError::InvalidColorCode(c)),
             };
 
             constraints.push(constraint);
