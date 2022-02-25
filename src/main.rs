@@ -10,8 +10,6 @@ use std::{
 
 use itertools::Itertools;
 
-pub type Alphabet = HashSet<char>;
-
 fn main() {
     println!("Welcome! Let's play Wordle.");
 
@@ -125,15 +123,6 @@ pub enum Constraint {
 }
 
 impl Constraint {
-    pub fn values(i: usize, c: char) -> impl Iterator<Item = Constraint> {
-        [
-            Constraint::AtPos((i, c)),
-            Constraint::NotAtPos((i, c)),
-            Constraint::Absent(c),
-        ]
-        .into_iter()
-    }
-
     pub fn is_match(&self, word: &Word) -> bool {
         use Constraint::*;
 
@@ -218,32 +207,6 @@ impl Word {
         self.chars().sorted().dedup()
     }
 
-    pub fn is_heterogram(&self) -> bool {
-        self.distinct_chars().count() == self.0.len()
-    }
-
-    pub fn all_constraints(&self) -> impl Iterator<Item = impl Iterator<Item = Constraint>> + '_ {
-        self.0.char_indices().map(|(i, c)| Constraint::values(i, c))
-    }
-
-    pub fn all_constraint_combinations(&self) -> impl Iterator<Item = Vec<Constraint>> {
-        self.all_constraints()
-            .map(|iter| iter.collect::<Vec<_>>())
-            .collect::<Vec<_>>()
-            .into_iter()
-            .multi_cartesian_product()
-    }
-
-    pub fn matching_constraint_set(&self, w: &Word) -> ConstraintSet {
-        let vec: Vec<_> = self
-            .0
-            .char_indices()
-            .map(|(i, c)| Constraint::matching_variant(w, i, c))
-            .collect();
-
-        ConstraintSet(vec)
-    }
-
     pub fn match_code(&self, w: &Word) -> String {
         self.chars()
             .zip(w.chars())
@@ -291,25 +254,8 @@ impl Wordlist {
         self.0.iter()
     }
 
-    pub fn alphabet(&self) -> Alphabet {
-        self.iter().flat_map(|w| w.chars()).collect()
-    }
-
     pub fn filter(self, constraints: &ConstraintSet) -> impl Iterator<Item = Word> + '_ {
         self.into_iter().filter(|w| constraints.is_match(w))
-    }
-
-    pub fn filter_ref<'a>(
-        &'a self,
-        constraints: &'a ConstraintSet,
-    ) -> impl Iterator<Item = &'a Word> + '_ {
-        self.iter().filter(|w| constraints.is_match(w))
-    }
-
-    pub fn best_next_word(&self) -> Option<(&Word, usize)> {
-        self.iter()
-            .map(|w| (w, w.filter_potential(self)))
-            .max_by(|a, b| a.1.cmp(&b.1))
     }
 
     pub fn rank_words(&self) -> impl Iterator<Item = (&Word, usize)> {
@@ -385,59 +331,5 @@ mod tests {
             word.distinct_chars().collect::<Vec<_>>(),
             w_norm.chars().collect::<Vec<_>>()
         );
-    }
-
-    #[rstest(
-        w,
-        is_heterogram,
-        case("about", true),
-        case("itchy", true),
-        case("afoot", false),
-        case("alibi", false),
-        case("jazzy", false),
-        case("jewel", false)
-    )]
-    fn test_is_heterogram(w: &str, is_heterogram: bool) {
-        let word = Word::from(w);
-
-        assert_eq!(word.is_heterogram(), is_heterogram);
-    }
-
-    #[test]
-    fn test_all_constraints() {
-        use Constraint::*;
-
-        let word = Word::from("hej");
-
-        let obs: Vec<Vec<_>> = word.all_constraints().map(|iter| iter.collect()).collect();
-
-        let exp = vec![
-            vec![AtPos((0, 'h')), NotAtPos((0, 'h')), Absent('h')],
-            vec![AtPos((1, 'e')), NotAtPos((1, 'e')), Absent('e')],
-            vec![AtPos((2, 'j')), NotAtPos((2, 'j')), Absent('j')],
-        ];
-
-        assert_eq!(obs, exp);
-    }
-
-    #[test]
-    fn test_all_constraint_combinations() {
-        use Constraint::*;
-
-        let word = Word::from("hi");
-
-        let exp = vec![
-            vec![AtPos((0, 'h')), AtPos((1, 'i'))],
-            vec![AtPos((0, 'h')), NotAtPos((1, 'i'))],
-            vec![AtPos((0, 'h')), Absent('i')],
-            vec![NotAtPos((0, 'h')), AtPos((1, 'i'))],
-            vec![NotAtPos((0, 'h')), NotAtPos((1, 'i'))],
-            vec![NotAtPos((0, 'h')), Absent('i')],
-            vec![Absent('h'), AtPos((1, 'i'))],
-            vec![Absent('h'), NotAtPos((1, 'i'))],
-            vec![Absent('h'), Absent('i')],
-        ];
-
-        assert_eq!(word.all_constraint_combinations().collect::<Vec<_>>(), exp);
     }
 }
