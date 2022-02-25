@@ -17,6 +17,10 @@ const WORD_LEN: usize = 5;
 const ROUND_NUM: usize = 6;
 
 fn main() {
+    play()
+}
+
+fn play() {
     println!("Welcome! Let's play Wordle.");
 
     let mut wordlist = Wordlist::from("data/words.txt");
