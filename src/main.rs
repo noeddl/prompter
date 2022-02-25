@@ -117,8 +117,8 @@ impl fmt::Display for InputError {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Constraint {
-    AtPos((usize, char)),
-    NotAtPos((usize, char)),
+    AtPos(usize, char),
+    NotAtPos(usize, char),
     Absent(char),
 }
 
@@ -127,8 +127,8 @@ impl Constraint {
         use Constraint::*;
 
         match self {
-            AtPos((i, c)) => word.char(*i) == *c,
-            NotAtPos((i, c)) => word.char(*i) != *c && word.contains(*c),
+            AtPos(i, c) => word.char(*i) == *c,
+            NotAtPos(i, c) => word.char(*i) != *c && word.contains(*c),
             Absent(c) => !word.contains(*c),
         }
     }
@@ -137,9 +137,9 @@ impl Constraint {
         if !w.contains(c) {
             Constraint::Absent(c)
         } else if w.char(i) == c {
-            Constraint::AtPos((i, c))
+            Constraint::AtPos(i, c)
         } else {
-            Constraint::NotAtPos((i, c))
+            Constraint::NotAtPos(i, c)
         }
     }
 }
@@ -153,9 +153,7 @@ impl ConstraintSet {
     }
 
     pub fn correct_word(&self) -> bool {
-        self.0
-            .iter()
-            .all(|c| matches!(c, Constraint::AtPos((_, _))))
+        self.0.iter().all(|c| matches!(c, Constraint::AtPos(_, _)))
     }
 }
 
@@ -174,8 +172,8 @@ impl TryFrom<(&str, &str)> for ConstraintSet {
 
         for (i, (c, color)) in char_iter {
             let constraint = match color {
-                'G' => Constraint::AtPos((i, c)),
-                'Y' => Constraint::NotAtPos((i, c)),
+                'G' => Constraint::AtPos(i, c),
+                'Y' => Constraint::NotAtPos(i, c),
                 'X' => Constraint::Absent(c),
                 _ => return Err(InputError::InvalidColorCode),
             };
