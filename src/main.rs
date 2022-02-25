@@ -10,12 +10,15 @@ use std::{
 
 use itertools::Itertools;
 
+/// Number of rounds to play.
+const ROUND_NUM: usize = 6;
+
 fn main() {
     println!("Welcome! Let's play Wordle.");
 
     let mut wordlist = Wordlist::from("data/words.txt");
 
-    for i in 1..=6 {
+    for i in 1..=ROUND_NUM {
         println!(
             "\n---[ Round #{} ]------------------------------------------------",
             i
@@ -69,7 +72,7 @@ fn main() {
 
         wordlist = Wordlist::from_iter(wordlist.filter(&constraints.unwrap()));
 
-        if wordlist.len() > 1 && i == 6 {
+        if wordlist.len() > 1 && i == ROUND_NUM {
             println!("\n{} candidate words left.", wordlist.len());
             println!("\nGame over.");
             break;
