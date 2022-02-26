@@ -197,7 +197,7 @@ fn simulate_all(start: &Word) {
     let avg_score = total_score as f32 / won_count as f32;
 
     println!(
-        "I won {} / {} games ({:.2} %) with in on average {:.2} rounds.",
+        "I won {} / {} games ({:.2} %) in on average {:.2} rounds.",
         won_count,
         wordlist.len(),
         won_percentage,
