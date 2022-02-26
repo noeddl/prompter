@@ -17,8 +17,9 @@ const WORD_LEN: usize = 5;
 const ROUND_NUM: usize = 6;
 
 fn main() {
-    play()
-    //simulate(&Word::from("trace"), &Word::from("vivid"))
+    play();
+    //simulate(&Word::from("trace"), &Word::from("vivid"));
+    //simulate_all(&Word::from("trace"));
 }
 
 fn play() {
@@ -88,7 +89,7 @@ fn play() {
     }
 }
 
-fn simulate(start: &Word, target: &Word) {
+fn simulate(start: &Word, target: &Word) -> Option<usize> {
     let mut wordlist = Wordlist::from("data/words.txt");
 
     for i in 1..=ROUND_NUM {
@@ -117,7 +118,7 @@ fn simulate(start: &Word, target: &Word) {
                 i,
                 if i == 1 { "" } else { "s" }
             );
-            break;
+            return Some(i);
         }
 
         let color_code = w.match_code(target);
@@ -130,7 +131,7 @@ fn simulate(start: &Word, target: &Word) {
                 i,
                 if i == 1 { "" } else { "s" }
             );
-            break;
+            return Some(i);
         }
 
         wordlist = Wordlist::from_iter(wordlist.filter(&constraints.unwrap()));
@@ -141,6 +142,27 @@ fn simulate(start: &Word, target: &Word) {
             break;
         }
     }
+
+    None
+}
+
+fn simulate_all(start: &Word) {
+    let wordlist = Wordlist::from("data/words.txt");
+
+    let scores: Vec<_> = wordlist.iter().filter_map(|w| simulate(start, w)).collect();
+
+    let total_score: usize = scores.iter().sum();
+    let won_count = scores.len();
+    let won_percentage = won_count as f32 / wordlist.len() as f32 * 100.0;
+    let avg_score = total_score as f32 / won_count as f32;
+
+    println!(
+        "I won {} / {} games ({:.2} %) with in on average {:.2} rounds.",
+        won_count,
+        wordlist.len(),
+        won_percentage,
+        avg_score
+    );
 }
 
 fn user_input() -> String {
