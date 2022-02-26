@@ -8,6 +8,7 @@ use std::{
     path::Path,
 };
 
+use clap::{Parser, Subcommand};
 use itertools::Itertools;
 
 /// Length of the word to be guessed.
@@ -16,10 +17,49 @@ const WORD_LEN: usize = 5;
 /// Number of rounds to play.
 const ROUND_NUM: usize = 6;
 
+#[derive(Parser)]
+#[clap(name = "prompter")]
+#[clap(about = "A Wordle solver in Rust", long_about = None)]
+struct Cli {
+    #[clap(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Get help while playing Wordle
+    Play {},
+    /// Simulate a Wordle game
+    Simulate {
+        /// Start word
+        #[clap(long, short)]
+        start: String,
+
+        /// Target word
+        #[clap(long, short, required_unless_present = "all")]
+        target: Option<String>,
+
+        /// Run start word against the whole wordlist
+        #[clap(long, short, conflicts_with = "target")]
+        all: bool,
+    },
+}
+
 fn main() {
-    play();
-    //simulate(&Word::from("trace"), &Word::from("vivid"));
-    //simulate_all(&Word::from("trace"));
+    let args = Cli::parse();
+
+    match &args.command {
+        Commands::Play {} => {
+            play();
+        }
+        Commands::Simulate { all, start, target } => {
+            if *all {
+                simulate_all(&Word::from(start));
+            } else {
+                simulate(&Word::from(start), &Word::from(target.as_ref().unwrap()));
+            }
+        }
+    }
 }
 
 fn play() {
