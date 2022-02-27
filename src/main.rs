@@ -9,7 +9,9 @@ use std::{
 };
 
 use clap::{Parser, Subcommand};
+use env_logger::{Builder, Target};
 use itertools::Itertools;
+use log::{debug, info, LevelFilter};
 
 /// Length of the word to be guessed.
 const WORD_LEN: usize = 5;
@@ -53,9 +55,19 @@ fn main() {
             play();
         }
         Commands::Simulate { all, start, target } => {
+            let mut builder = Builder::new();
+
+            builder
+                .format(|buf, record| writeln!(buf, "{}", record.args()))
+                .target(Target::Stdout);
+
             if *all {
+                builder.filter_level(LevelFilter::Info);
+                builder.init();
                 simulate_all(&Word::from(start));
             } else {
+                builder.filter_level(LevelFilter::Debug);
+                builder.init();
                 simulate(&Word::from(start), &Word::from(target.as_ref().unwrap()));
             }
         }
@@ -132,14 +144,16 @@ fn play() {
 fn simulate(start: &Word, target: &Word) -> Option<usize> {
     let mut wordlist = Wordlist::from("data/words.txt");
 
+    debug!("{} -> {}", start, target);
+
     for i in 1..=ROUND_NUM {
-        println!(
+        debug!(
             "\n---[ Round #{} ]------------------------------------------------",
             i
         );
 
         let w_count = wordlist.len();
-        println!(
+        debug!(
             "\n{} candidate word{} left.",
             w_count,
             if w_count == 1 { "" } else { "s" }
@@ -150,10 +164,10 @@ fn simulate(start: &Word, target: &Word) -> Option<usize> {
             _ => wordlist.rank_words().next().unwrap().0,
         };
 
-        println!("Top candidate word: {}", w);
+        debug!("Top candidate word: {}", w);
 
         if wordlist.len() == 1 {
-            println!(
+            debug!(
                 "\nI won after {} round{}.",
                 i,
                 if i == 1 { "" } else { "s" }
@@ -166,7 +180,7 @@ fn simulate(start: &Word, target: &Word) -> Option<usize> {
         let constraints = ConstraintSet::try_from((w.0.as_ref(), color_code.as_ref()));
 
         if constraints.as_ref().unwrap().correct_word() {
-            println!(
+            debug!(
                 "\nI won after {} round{}.",
                 i,
                 if i == 1 { "" } else { "s" }
@@ -177,8 +191,8 @@ fn simulate(start: &Word, target: &Word) -> Option<usize> {
         wordlist = Wordlist::from_iter(wordlist.filter(&constraints.unwrap()));
 
         if wordlist.len() > 1 && i == ROUND_NUM {
-            println!("\n{} candidate words left.", wordlist.len());
-            println!("\nGame over.");
+            debug!("\n{} candidate words left.", wordlist.len());
+            debug!("\nGame over.");
             break;
         }
     }
@@ -189,14 +203,23 @@ fn simulate(start: &Word, target: &Word) -> Option<usize> {
 fn simulate_all(start: &Word) {
     let wordlist = Wordlist::from("data/words.txt");
 
-    let scores: Vec<_> = wordlist.iter().filter_map(|w| simulate(start, w)).collect();
+    let mut scores = Vec::with_capacity(wordlist.len());
+
+    for w in &wordlist {
+        if let Some(score) = simulate(start, w) {
+            scores.push(score);
+            info!("{} -> {}: Won after {} rounds", start, w, score);
+        } else {
+            info!("{} -> {}: Lost", start, w);
+        }
+    }
 
     let total_score: usize = scores.iter().sum();
     let won_count = scores.len();
     let won_percentage = won_count as f32 / wordlist.len() as f32 * 100.0;
     let avg_score = total_score as f32 / won_count as f32;
 
-    println!(
+    info!(
         "I won {} / {} games ({:.2} %) in on average {:.2} rounds.",
         won_count,
         wordlist.len(),
