@@ -313,12 +313,16 @@ impl Constraint {
 pub struct ConstraintSet(Vec<Constraint>);
 
 impl ConstraintSet {
+    pub fn iter(&self) -> ::std::slice::Iter<Constraint> {
+        self.0.iter()
+    }
+
     pub fn is_match(&self, word: &Word) -> bool {
-        self.0.iter().all(|c| c.is_match(word))
+        self.iter().all(|c| c.is_match(word))
     }
 
     pub fn correct_word(&self) -> bool {
-        self.0.iter().all(|c| matches!(c, Constraint::AtPos(_, _)))
+        self.iter().all(|c| matches!(c, Constraint::AtPos(_, _)))
     }
 }
 
@@ -347,6 +351,24 @@ impl TryFrom<(&str, &str)> for ConstraintSet {
         }
 
         Ok(Self(constraints))
+    }
+}
+
+impl IntoIterator for ConstraintSet {
+    type Item = Constraint;
+    type IntoIter = ::std::vec::IntoIter<Constraint>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a ConstraintSet {
+    type Item = &'a Constraint;
+    type IntoIter = ::std::slice::Iter<'a, Constraint>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.iter()
     }
 }
 
