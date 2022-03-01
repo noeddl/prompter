@@ -317,8 +317,43 @@ impl ConstraintSet {
         self.0.iter()
     }
 
+    pub fn present_chars(&self) -> Vec<char> {
+        use Constraint::*;
+
+        let mut chars = vec![];
+
+        for constraint in self {
+            match constraint {
+                AtPos(_i, c) => chars.push(*c),
+                NotAtPos(_i, c) => chars.push(*c),
+                _ => {}
+            };
+        }
+
+        chars
+    }
+
     pub fn is_match(&self, word: &Word) -> bool {
-        self.iter().all(|c| c.is_match(word))
+        use Constraint::*;
+
+        let chars: Vec<_> = word
+            .distinct_chars()
+            .filter(|c| !self.present_chars().contains(c))
+            .collect();
+
+        for constraint in self {
+            let is_match = match constraint {
+                AtPos(i, c) => word.char(*i) == *c,
+                NotAtPos(i, c) => word.char(*i) != *c && word.contains(*c),
+                Absent(c) => !chars.contains(c),
+            };
+
+            if !is_match {
+                return false;
+            }
+        }
+
+        true
     }
 
     pub fn correct_word(&self) -> bool {
