@@ -495,4 +495,31 @@ mod tests {
             w_norm.chars().collect::<Vec<_>>()
         );
     }
+
+    #[rstest(
+        input,
+        target,
+        code,
+        case("words", "words", "GGGGG"),
+        case("abcde", "fghij", "XXXXX"),
+        case("choir", "wrung", "XXXXY"),
+        case("child", "light", "XYYYX"),
+        case("stole", "those", "YYGXG"),
+        case("raise", "moist", "XXGGX"),
+        case("slate", "pleat", "XGYYY"),
+        case("blast", "aloft", "XGYXG"),
+        case("raise", "elder", "YXXXY"),
+        case("brink", "robin", "YYYYX"),
+        case("phase", "shake", "XGGYG"),
+        case("armor", "aroma", "GGYYX"),
+        case("canal", "caulk", "GGXXY"),
+        case("robot", "thorn", "YYXXY"),
+        case("nylon", "thorn", "XXXYG"),
+        case("tacit", "thorn", "GXXXX")
+    )]
+    fn test_match_code(input: &str, target: &str, code: &str) {
+        let constraint_set = ConstraintSet::try_from((input, code)).unwrap();
+
+        assert!(constraint_set.is_match(&Word::from(target)));
+    }
 }
