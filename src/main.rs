@@ -333,6 +333,7 @@ impl ConstraintSet {
         chars
     }
 
+    #[allow(clippy::needless_collect)]
     pub fn is_match(&self, word: &Word) -> bool {
         use Constraint::*;
 
