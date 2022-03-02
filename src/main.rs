@@ -520,28 +520,30 @@ mod tests {
 
     #[rstest(
         input,
-        target,
         code,
-        case("words", "words", "GGGGG"),
-        case("abcde", "fghij", "XXXXX"),
-        case("choir", "wrung", "XXXXY"),
-        case("child", "light", "XYYYX"),
-        case("stole", "those", "YYGXG"),
-        case("raise", "moist", "XXGGX"),
-        case("slate", "pleat", "XGYYY"),
-        case("blast", "aloft", "XGYXG"),
-        case("raise", "elder", "YXXXY"),
-        case("brink", "robin", "YYYYX"),
-        case("phase", "shake", "XGGYG"),
-        case("armor", "aroma", "GGYYX"),
-        case("canal", "caulk", "GGXXY"),
-        case("robot", "thorn", "YYXXY"),
-        case("nylon", "thorn", "XXXYG"),
-        case("tacit", "thorn", "GXXXX")
+        target,
+        is_match,
+        case("words", "GGGGG", "words", true),
+        case("abcde", "XXXXX", "fghij", true),
+        case("choir", "XXXXY", "wrung", true),
+        case("child", "XYYYX", "light", true),
+        case("stole", "YYGXG", "those", true),
+        case("raise", "XXGGX", "moist", true),
+        case("slate", "XGYYY", "pleat", true),
+        case("blast", "XGYXG", "aloft", true),
+        case("raise", "YXXXY", "elder", true),
+        case("brink", "YYYYX", "robin", true),
+        case("phase", "XGGYG", "shake", true),
+        case("armor", "GGYYX", "aroma", true),
+        case("canal", "GGXXY", "caulk", true),
+        case("robot", "YYXXY", "thorn", true),
+        case("nylon", "XXXYG", "thorn", true),
+        case("tacit", "GXXXX", "thorn", true),
+        case("crate", "XXYGX", "haste", false)
     )]
-    fn test_match_code(input: &str, target: &str, code: &str) {
+    fn test_is_match(input: &str, code: &str, target: &str, is_match: bool) {
         let constraint_set = ConstraintSet::try_from((input, code)).unwrap();
 
-        assert!(constraint_set.is_match(&Word::from(target)));
+        assert_eq!(constraint_set.is_match(&Word::from(target)), is_match);
     }
 }
