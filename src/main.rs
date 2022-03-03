@@ -35,7 +35,7 @@ enum Commands {
     Simulate {
         /// Start word
         #[clap(long, short)]
-        start: String,
+        start: Option<String>,
 
         /// Target word
         #[clap(long, short, required_unless_present = "all")]
@@ -64,11 +64,14 @@ fn main() {
             if *all {
                 builder.filter_level(LevelFilter::Info);
                 builder.init();
-                simulate_all(&Word::from(start));
+                simulate_all(start.as_ref());
             } else {
                 builder.filter_level(LevelFilter::Debug);
                 builder.init();
-                simulate(&Word::from(start), &Word::from(target.as_ref().unwrap()));
+                simulate(
+                    &Word::from(start.as_ref().unwrap()),
+                    &Word::from(target.as_ref().unwrap()),
+                );
             }
         }
     }
@@ -200,17 +203,32 @@ fn simulate(start: &Word, target: &Word) -> Option<usize> {
     None
 }
 
-fn simulate_all(start: &Word) {
+fn simulate_all(start: Option<&String>) {
     let wordlist = Wordlist::from("data/words.txt");
 
     let mut scores = Vec::with_capacity(wordlist.len());
 
-    for w in &wordlist {
-        if let Some(score) = simulate(start, w) {
-            scores.push(score);
-            info!("{} -> {}: Won after {} rounds", start, w, score);
-        } else {
-            info!("{} -> {}: Lost", start, w);
+    let iter_a = if start.is_none() {
+        Some(wordlist.iter())
+    } else {
+        None
+    };
+
+    let iter_b = start.map(Word::from);
+
+    let start_words = iter_a
+        .into_iter()
+        .flatten()
+        .chain(iter_b.as_ref().into_iter());
+
+    for start in start_words {
+        for w in &wordlist {
+            if let Some(score) = simulate(start, w) {
+                scores.push(score);
+                info!("{} -> {}: Won after {} rounds", start, w, score);
+            } else {
+                info!("{} -> {}: Lost", start, w);
+            }
         }
     }
 
