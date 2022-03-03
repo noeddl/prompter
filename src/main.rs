@@ -482,9 +482,7 @@ impl Wordlist {
     pub fn rank_words(&self) -> impl Iterator<Item = (&Word, usize)> {
         self.iter()
             .map(|w| (w, w.filter_potential(self)))
-            .sorted_by(|a, b| {
-                (b.1, b.0.distinct_chars().count()).cmp(&(a.1, a.0.distinct_chars().count()))
-            })
+            .sorted_by(|a, b| (b.1).cmp(&a.1))
     }
 }
 
