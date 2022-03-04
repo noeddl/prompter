@@ -38,12 +38,8 @@ enum Commands {
         start: Option<String>,
 
         /// Target word
-        #[clap(long, short, required_unless_present = "all")]
+        #[clap(long, short)]
         target: Option<String>,
-
-        /// Run start word against the whole wordlist
-        #[clap(long, short, conflicts_with = "target")]
-        all: bool,
     },
 }
 
@@ -54,25 +50,21 @@ fn main() {
         Commands::Play {} => {
             play();
         }
-        Commands::Simulate { all, start, target } => {
+        Commands::Simulate { start, target } => {
             let mut builder = Builder::new();
 
             builder
                 .format(|buf, record| writeln!(buf, "{}", record.args()))
                 .target(Target::Stdout);
 
-            if *all {
-                builder.filter_level(LevelFilter::Info);
-                builder.init();
-                simulate_all(start.as_ref(), target.as_ref());
-            } else {
+            if start.is_some() && target.is_some() {
                 builder.filter_level(LevelFilter::Debug);
-                builder.init();
-                simulate(
-                    &Word::from(start.as_ref().unwrap()),
-                    &Word::from(target.as_ref().unwrap()),
-                );
+            } else {
+                builder.filter_level(LevelFilter::Info);
             }
+
+            builder.init();
+            simulate_all(start.as_ref(), target.as_ref());
         }
     }
 }
@@ -250,13 +242,15 @@ fn simulate_all(start: Option<&String>, target: Option<&String>) {
     let won_percentage = won_count as f32 / wordlist.len() as f32 * 100.0;
     let avg_score = total_score as f32 / won_count as f32;
 
-    info!(
-        "I won {} / {} games ({:.2} %) in on average {:.2} rounds.",
-        won_count,
-        wordlist.len(),
-        won_percentage,
-        avg_score
-    );
+    if !(start.is_some() && target.is_some()) {
+        info!(
+            "I won {} / {} games ({:.2} %) in on average {:.2} rounds.",
+            won_count,
+            wordlist.len(),
+            won_percentage,
+            avg_score
+        );
+    }
 }
 
 fn user_input() -> String {
