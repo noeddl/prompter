@@ -214,7 +214,7 @@ fn simulate_all(start: Option<&String>, target: Option<&String>) {
         .flatten()
         .chain(iter_b.as_ref().into_iter());
 
-    for start in start_words {
+    for s in start_words {
         let iter_c = if target.is_none() {
             Some(wordlist.iter())
         } else {
@@ -228,28 +228,28 @@ fn simulate_all(start: Option<&String>, target: Option<&String>) {
             .flatten()
             .chain(iter_d.as_ref().into_iter());
 
-        for target in target_words {
-            if let Some(score) = simulate(start, target) {
+        for t in target_words {
+            if let Some(score) = simulate(s, t) {
                 scores.push(score);
-                info!("{} -> {}: Won after {} rounds", start, target, score);
+                info!("{} -> {}: Won after {} rounds", s, t, score);
             } else {
-                info!("{} -> {}: Lost", start, target);
+                info!("{} -> {}: Lost", s, t);
             }
         }
-    }
 
-    if !(start.is_some() && target.is_some()) {
-        print_results(scores.iter().sum(), scores.len(), wordlist.len());
+        if !(start.is_some() && target.is_some()) {
+            print_results(s, scores.iter().sum(), scores.len(), wordlist.len());
+        }
     }
 }
 
-fn print_results(total_score: usize, won_count: usize, game_count: usize) {
+fn print_results(start_word: &Word, total_score: usize, won_count: usize, game_count: usize) {
     let won_percentage = won_count as f32 / game_count as f32 * 100.0;
     let avg_score = total_score as f32 / won_count as f32;
 
     println!(
-        "I won {} / {} games ({:.2} %) in on average {:.2} rounds.",
-        won_count, game_count, won_percentage, avg_score
+        "With start word \"{}\", I won {} / {} games ({:.2} %) in on average {:.2} rounds.",
+        start_word, won_count, game_count, won_percentage, avg_score
     )
 }
 
