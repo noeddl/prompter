@@ -38,7 +38,7 @@ enum Commands {
         start: Option<String>,
 
         /// Target word
-        #[clap(long, short)]
+        #[clap(long, short, requires = "start")]
         target: Option<String>,
     },
 }
