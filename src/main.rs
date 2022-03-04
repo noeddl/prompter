@@ -57,12 +57,13 @@ fn main() {
                 .format(|buf, record| writeln!(buf, "{}", record.args()))
                 .target(Target::Stdout);
 
-            if start.is_some() && target.is_some() {
-                builder.filter_level(LevelFilter::Debug);
-            } else {
-                builder.filter_level(LevelFilter::Info);
-            }
+            let level = match (start, target) {
+                (Some(_), Some(_)) => LevelFilter::Debug,
+                (None, None) => LevelFilter::Warn,
+                (_, _) => LevelFilter::Info,
+            };
 
+            builder.filter_level(level);
             builder.init();
             simulate_all(start.as_ref(), target.as_ref());
         }
