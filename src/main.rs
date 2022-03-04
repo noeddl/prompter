@@ -64,7 +64,7 @@ fn main() {
             if *all {
                 builder.filter_level(LevelFilter::Info);
                 builder.init();
-                simulate_all(start.as_ref());
+                simulate_all(start.as_ref(), target.as_ref());
             } else {
                 builder.filter_level(LevelFilter::Debug);
                 builder.init();
@@ -203,7 +203,7 @@ fn simulate(start: &Word, target: &Word) -> Option<usize> {
     None
 }
 
-fn simulate_all(start: Option<&String>) {
+fn simulate_all(start: Option<&String>, target: Option<&String>) {
     let wordlist = Wordlist::from("data/words.txt");
 
     let mut scores = Vec::with_capacity(wordlist.len());
@@ -222,12 +222,25 @@ fn simulate_all(start: Option<&String>) {
         .chain(iter_b.as_ref().into_iter());
 
     for start in start_words {
-        for w in &wordlist {
-            if let Some(score) = simulate(start, w) {
+        let iter_c = if target.is_none() {
+            Some(wordlist.iter())
+        } else {
+            None
+        };
+
+        let iter_d = target.map(Word::from);
+
+        let target_words = iter_c
+            .into_iter()
+            .flatten()
+            .chain(iter_d.as_ref().into_iter());
+
+        for target in target_words {
+            if let Some(score) = simulate(start, target) {
                 scores.push(score);
-                info!("{} -> {}: Won after {} rounds", start, w, score);
+                info!("{} -> {}: Won after {} rounds", start, target, score);
             } else {
-                info!("{} -> {}: Lost", start, w);
+                info!("{} -> {}: Lost", start, target);
             }
         }
     }
