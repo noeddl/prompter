@@ -238,20 +238,19 @@ fn simulate_all(start: Option<&String>, target: Option<&String>) {
         }
     }
 
-    let total_score: usize = scores.iter().sum();
-    let won_count = scores.len();
-    let won_percentage = won_count as f32 / wordlist.len() as f32 * 100.0;
+    if !(start.is_some() && target.is_some()) {
+        print_results(scores.iter().sum(), scores.len(), wordlist.len());
+    }
+}
+
+fn print_results(total_score: usize, won_count: usize, game_count: usize) {
+    let won_percentage = won_count as f32 / game_count as f32 * 100.0;
     let avg_score = total_score as f32 / won_count as f32;
 
-    if !(start.is_some() && target.is_some()) {
-        info!(
-            "I won {} / {} games ({:.2} %) in on average {:.2} rounds.",
-            won_count,
-            wordlist.len(),
-            won_percentage,
-            avg_score
-        );
-    }
+    println!(
+        "I won {} / {} games ({:.2} %) in on average {:.2} rounds.",
+        won_count, game_count, won_percentage, avg_score
+    )
 }
 
 fn user_input() -> String {
