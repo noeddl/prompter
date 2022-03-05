@@ -19,6 +19,9 @@ const WORD_LEN: usize = 5;
 /// Number of rounds to play.
 const ROUND_NUM: usize = 6;
 
+/// Path to wordlist.
+const WORDLIST_PATH: &str = "data/words.txt";
+
 #[derive(Parser)]
 #[clap(name = "prompter")]
 #[clap(about = "A Wordle solver in Rust", long_about = None)]
@@ -79,7 +82,7 @@ fn plural(number: usize) -> String {
 fn play() {
     println!("Welcome! Let's play Wordle.");
 
-    let mut wordlist = Wordlist::from("data/words.txt");
+    let mut wordlist = Wordlist::from(WORDLIST_PATH);
 
     for i in 1..=ROUND_NUM {
         println!(
@@ -129,7 +132,7 @@ fn play() {
 }
 
 fn simulate(start: &Word, target: &Word) -> Option<usize> {
-    let mut wordlist = Wordlist::from("data/words.txt");
+    let mut wordlist = Wordlist::from(WORDLIST_PATH);
 
     debug!("{} -> {}", start, target);
 
@@ -176,7 +179,7 @@ fn simulate(start: &Word, target: &Word) -> Option<usize> {
 }
 
 fn simulate_all(start: Option<&String>, target: Option<&String>) {
-    let wordlist = Wordlist::from("data/words.txt");
+    let wordlist = Wordlist::from(WORDLIST_PATH);
 
     let iter_a = if start.is_none() {
         Some(wordlist.iter())
