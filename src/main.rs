@@ -199,8 +199,6 @@ fn simulate(start: &Word, target: &Word) -> Option<usize> {
 fn simulate_all(start: Option<&String>, target: Option<&String>) {
     let wordlist = Wordlist::from("data/words.txt");
 
-    let mut scores = Vec::with_capacity(wordlist.len());
-
     let iter_a = if start.is_none() {
         Some(wordlist.iter())
     } else {
@@ -215,6 +213,8 @@ fn simulate_all(start: Option<&String>, target: Option<&String>) {
         .chain(iter_b.as_ref().into_iter());
 
     for s in start_words {
+        let mut scores = Vec::with_capacity(wordlist.len());
+
         let iter_c = if target.is_none() {
             Some(wordlist.iter())
         } else {
