@@ -70,6 +70,12 @@ fn main() {
     }
 }
 
+fn plural(number: usize) -> String {
+    let s = if number == 1 { "" } else { "s" };
+
+    s.to_string()
+}
+
 fn play() {
     println!("Welcome! Let's play Wordle.");
 
@@ -82,20 +88,13 @@ fn play() {
         );
 
         let w_count = wordlist.len();
-        println!(
-            "\n{} candidate word{} left.",
-            w_count,
-            if w_count == 1 { "" } else { "s" }
-        );
+        println!("\n{} candidate word{} left.", w_count, plural(w_count));
 
         let start = std::time::Instant::now();
         let candidates = wordlist.rank_words();
         let duration = start.elapsed();
 
-        println!(
-            "\nTop candidate word{}:",
-            if w_count == 1 { "" } else { "s" }
-        );
+        println!("\nTop candidate word{}:", plural(w_count));
 
         for (w, score) in candidates.take(10) {
             println!("{} ({})", w, score);
@@ -103,11 +102,7 @@ fn play() {
         println!("\nTime elapsed for word ranking: {:?}", duration);
 
         if wordlist.len() == 1 {
-            println!(
-                "\nCongratulations! You won after {} round{}.",
-                i,
-                if i == 1 { "" } else { "s" }
-            );
+            println!("\nCongratulations! You won after {} round{}.", i, plural(i));
             break;
         }
 
@@ -119,11 +114,7 @@ fn play() {
         }
 
         if constraints.as_ref().unwrap().correct_word() {
-            println!(
-                "\nCongratulations! You won after {} round{}.",
-                i,
-                if i == 1 { "" } else { "s" }
-            );
+            println!("\nCongratulations! You won after {} round{}.", i, plural(i));
             break;
         }
 
@@ -149,11 +140,7 @@ fn simulate(start: &Word, target: &Word) -> Option<usize> {
         );
 
         let w_count = wordlist.len();
-        debug!(
-            "\n{} candidate word{} left.",
-            w_count,
-            if w_count == 1 { "" } else { "s" }
-        );
+        debug!("\n{} candidate word{} left.", w_count, plural(w_count));
 
         let w = match i {
             1 => start,
@@ -163,11 +150,7 @@ fn simulate(start: &Word, target: &Word) -> Option<usize> {
         debug!("Top candidate word: {}", w);
 
         if wordlist.len() == 1 {
-            debug!(
-                "\nI won after {} round{}.",
-                i,
-                if i == 1 { "" } else { "s" }
-            );
+            debug!("\nI won after {} round{}.", i, plural(i));
             return Some(i);
         }
 
@@ -176,11 +159,7 @@ fn simulate(start: &Word, target: &Word) -> Option<usize> {
         let constraints = ConstraintSet::try_from((w.0.as_ref(), color_code.as_ref()));
 
         if constraints.as_ref().unwrap().correct_word() {
-            debug!(
-                "\nI won after {} round{}.",
-                i,
-                if i == 1 { "" } else { "s" }
-            );
+            debug!("\nI won after {} round{}.", i, plural(i));
             return Some(i);
         }
 
@@ -231,7 +210,7 @@ fn simulate_all(start: Option<&String>, target: Option<&String>) {
         for t in target_words {
             if let Some(score) = simulate(s, t) {
                 scores.push(score);
-                info!("{} -> {}: Won after {} rounds", s, t, score);
+                info!("{} -> {}: Won after {} round{}", s, t, score, plural(score));
             } else {
                 info!("{} -> {}: Lost", s, t);
             }
