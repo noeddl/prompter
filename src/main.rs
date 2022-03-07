@@ -102,7 +102,7 @@ fn play() {
         for (w, score) in candidates.take(10) {
             println!("{} ({})", w, score);
         }
-        println!("\nTime elapsed for word ranking: {:?}", duration);
+        debug!("\nTime elapsed for word ranking: {:?}", duration);
 
         if wordlist.len() == 1 {
             println!("\nCongratulations! You won after {} round{}.", i, plural(i));
