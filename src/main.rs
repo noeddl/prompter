@@ -537,6 +537,12 @@ mod tests {
 
     use super::*;
 
+    #[test]
+    fn verify_app() {
+        use clap::CommandFactory;
+        Cli::command().debug_assert()
+    }
+
     #[rstest(
         w,
         w_norm,
