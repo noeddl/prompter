@@ -178,37 +178,30 @@ fn simulate(start: &Word, target: &Word) -> Option<usize> {
     None
 }
 
-fn simulate_all(start: Option<&String>, target: Option<&String>) {
-    let wordlist = Wordlist::from(WORDLIST_PATH);
-
-    let iter_a = if start.is_none() {
+fn word_iter<'a>(
+    word_opt: Option<&'a Word>,
+    wordlist: &'a Wordlist,
+) -> impl Iterator<Item = &'a Word> {
+    let iter = if word_opt.is_none() {
         Some(wordlist.iter())
     } else {
         None
     };
 
-    let iter_b = start.map(Word::from);
+    iter.into_iter().flatten().chain(word_opt.into_iter())
+}
 
-    let start_words = iter_a
-        .into_iter()
-        .flatten()
-        .chain(iter_b.as_ref().into_iter());
+fn simulate_all(start: Option<&String>, target: Option<&String>) {
+    let wordlist = Wordlist::from(WORDLIST_PATH);
+
+    let start_word = start.map(Word::from);
+    let start_words = word_iter(start_word.as_ref(), &wordlist);
 
     for s in start_words {
         let mut scores = Vec::with_capacity(wordlist.len());
 
-        let iter_c = if target.is_none() {
-            Some(wordlist.iter())
-        } else {
-            None
-        };
-
-        let iter_d = target.map(Word::from);
-
-        let target_words = iter_c
-            .into_iter()
-            .flatten()
-            .chain(iter_d.as_ref().into_iter());
+        let target_word = target.map(Word::from);
+        let target_words = word_iter(target_word.as_ref(), &wordlist);
 
         for t in target_words {
             if let Some(score) = simulate(s, t) {
