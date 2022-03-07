@@ -287,28 +287,6 @@ pub enum Constraint {
     Absent(char),
 }
 
-impl Constraint {
-    pub fn is_match(&self, word: &Word) -> bool {
-        use Constraint::*;
-
-        match self {
-            AtPos(i, c) => word.char(*i) == *c,
-            NotAtPos(i, c) => word.char(*i) != *c && word.contains(*c),
-            Absent(c) => !word.contains(*c),
-        }
-    }
-
-    pub fn matching_variant(w: &Word, i: usize, c: char) -> Constraint {
-        if !w.contains(c) {
-            Constraint::Absent(c)
-        } else if w.char(i) == c {
-            Constraint::AtPos(i, c)
-        } else {
-            Constraint::NotAtPos(i, c)
-        }
-    }
-}
-
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct ConstraintSet {
     constraints: Vec<Constraint>,
