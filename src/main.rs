@@ -319,27 +319,12 @@ impl Constraint {
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct ConstraintSet {
     constraints: Vec<Constraint>,
+    present_chars: Vec<char>,
 }
 
 impl ConstraintSet {
     pub fn iter(&self) -> ::std::slice::Iter<Constraint> {
         self.constraints.iter()
-    }
-
-    pub fn present_chars(&self) -> Vec<char> {
-        use Constraint::*;
-
-        let mut chars = vec![];
-
-        for constraint in self {
-            match constraint {
-                AtPos(_i, c) => chars.push(*c),
-                NotAtPos(_i, c) => chars.push(*c),
-                _ => {}
-            };
-        }
-
-        chars
     }
 
     #[allow(clippy::needless_collect)]
@@ -348,7 +333,7 @@ impl ConstraintSet {
 
         let chars: Vec<_> = word
             .distinct_chars()
-            .filter(|c| !self.present_chars().contains(c))
+            .filter(|c| !self.present_chars.contains(c))
             .collect();
 
         for constraint in self {
@@ -378,6 +363,7 @@ impl TryFrom<(&str, &str)> for ConstraintSet {
         let (word, colors) = input;
 
         let mut constraints = vec![];
+        let mut present_chars = vec![];
 
         let word = word.to_lowercase();
         let colors = colors.to_uppercase();
@@ -386,8 +372,14 @@ impl TryFrom<(&str, &str)> for ConstraintSet {
 
         for (i, (c, color)) in char_iter {
             let constraint = match color {
-                'G' => Constraint::AtPos(i, c),
-                'Y' => Constraint::NotAtPos(i, c),
+                'G' => {
+                    present_chars.push(c);
+                    Constraint::AtPos(i, c)
+                }
+                'Y' => {
+                    present_chars.push(c);
+                    Constraint::NotAtPos(i, c)
+                }
                 'X' => Constraint::Absent(c),
                 c => return Err(InputError::InvalidColorCode(c)),
             };
@@ -395,7 +387,10 @@ impl TryFrom<(&str, &str)> for ConstraintSet {
             constraints.push(constraint);
         }
 
-        Ok(Self { constraints })
+        Ok(Self {
+            constraints,
+            present_chars,
+        })
     }
 }
 
