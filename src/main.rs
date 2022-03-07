@@ -109,11 +109,18 @@ fn play() {
             break;
         }
 
-        let mut constraints = get_contraints(i);
+        let mut word = get_user_word(i);
+
+        while let Err(error) = word {
+            println!("\nError: {}", error);
+            word = get_user_word(i);
+        }
+
+        let mut constraints = get_contraints(word.as_ref().unwrap());
 
         while let Err(error) = constraints {
             println!("\nError: {}", error);
-            constraints = get_contraints(i);
+            constraints = get_contraints(word.as_ref().unwrap());
         }
 
         if constraints.as_ref().unwrap().correct_word() {
@@ -236,7 +243,7 @@ fn user_input() -> String {
     buffer.trim().to_string()
 }
 
-fn get_contraints(i: usize) -> Result<ConstraintSet, InputError> {
+fn get_user_word(i: usize) -> Result<String, InputError> {
     println!(
         "\nPlease enter your {} word.",
         if i == 1 { "first" } else { "next" }
@@ -247,6 +254,10 @@ fn get_contraints(i: usize) -> Result<ConstraintSet, InputError> {
         return Err(InputError::IncorrectWordLength);
     }
 
+    Ok(word)
+}
+
+fn get_contraints(word: &str) -> Result<ConstraintSet, InputError> {
     println!("\nPlease enter Wordle's answer. (G = Green, Y = Yellow, X = Gray)");
     let colors = user_input();
 
@@ -254,7 +265,7 @@ fn get_contraints(i: usize) -> Result<ConstraintSet, InputError> {
         return Err(InputError::IncorrectColorCodeLength);
     }
 
-    ConstraintSet::try_from((word.as_ref(), colors.as_ref()))
+    ConstraintSet::try_from((word, colors.as_ref()))
 }
 
 #[derive(Debug)]
