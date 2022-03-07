@@ -317,11 +317,13 @@ impl Constraint {
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
-pub struct ConstraintSet(Vec<Constraint>);
+pub struct ConstraintSet {
+    constraints: Vec<Constraint>,
+}
 
 impl ConstraintSet {
     pub fn iter(&self) -> ::std::slice::Iter<Constraint> {
-        self.0.iter()
+        self.constraints.iter()
     }
 
     pub fn present_chars(&self) -> Vec<char> {
@@ -393,7 +395,7 @@ impl TryFrom<(&str, &str)> for ConstraintSet {
             constraints.push(constraint);
         }
 
-        Ok(Self(constraints))
+        Ok(Self { constraints })
     }
 }
 
@@ -402,7 +404,7 @@ impl IntoIterator for ConstraintSet {
     type IntoIter = ::std::vec::IntoIter<Constraint>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.0.into_iter()
+        self.constraints.into_iter()
     }
 }
 
@@ -411,7 +413,7 @@ impl<'a> IntoIterator for &'a ConstraintSet {
     type IntoIter = ::std::slice::Iter<'a, Constraint>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.0.iter()
+        self.constraints.iter()
     }
 }
 
