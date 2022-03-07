@@ -325,7 +325,7 @@ impl ConstraintSet {
         use Constraint::*;
 
         let chars: Vec<_> = word
-            .distinct_chars()
+            .chars()
             .filter(|c| !self.present_chars.contains(c))
             .collect();
 
@@ -419,10 +419,6 @@ impl Word {
 
     pub fn chars(&self) -> impl Iterator<Item = char> + '_ {
         self.0.chars()
-    }
-
-    pub fn distinct_chars(&self) -> impl Iterator<Item = char> {
-        self.chars().sorted().dedup()
     }
 
     pub fn match_code(&self, w: &Word) -> String {
@@ -534,25 +530,6 @@ mod tests {
     fn verify_app() {
         use clap::CommandFactory;
         Cli::command().debug_assert()
-    }
-
-    #[rstest(
-        w,
-        w_norm,
-        case("about", "abotu"),
-        case("itchy", "chity"),
-        case("afoot", "afot"),
-        case("alibi", "abil"),
-        case("jazzy", "ajyz"),
-        case("jewel", "ejlw")
-    )]
-    fn test_distinct_chars(w: &str, w_norm: &str) {
-        let word = Word::from(w);
-
-        assert_eq!(
-            word.distinct_chars().collect::<Vec<_>>(),
-            w_norm.chars().collect::<Vec<_>>()
-        );
     }
 
     #[rstest(
