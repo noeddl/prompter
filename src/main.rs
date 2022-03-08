@@ -37,11 +37,11 @@ enum Commands {
     /// Simulate a Wordle game
     Simulate {
         /// Start word
-        #[clap(long, short)]
+        #[clap(long, short, value_name = "WORD")]
         start: Option<String>,
 
         /// Target word
-        #[clap(long, short, requires = "start")]
+        #[clap(long, short, requires = "start", value_name = "WORD")]
         target: Option<String>,
     },
 }
