@@ -129,6 +129,7 @@ fn play() {
         }
 
         wordlist = Wordlist::from_iter(wordlist.filter(&constraints.unwrap()));
+        wordlist.remove(word.as_ref().unwrap());
 
         if wordlist.len() > 1 && i == ROUND_NUM {
             println!("\n{} candidate words left.", wordlist.len());
@@ -473,6 +474,12 @@ impl Wordlist {
         self.iter()
             .map(|w| (w, w.filter_potential(self)))
             .sorted_by(|a, b| (b.1).cmp(&a.1))
+    }
+
+    pub fn remove(&mut self, word: &str) {
+        if let Some(index) = self.iter().position(|w| w.0 == word) {
+            self.0.remove(index);
+        }
     }
 }
 
