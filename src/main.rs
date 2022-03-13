@@ -135,6 +135,11 @@ fn play() {
             println!("\nGame over.");
             break;
         }
+
+        if wordlist.is_empty() {
+            println!("\nSomething went wrong. There are no matching words left.");
+            break;
+        }
     }
 }
 
@@ -448,9 +453,12 @@ impl fmt::Display for Word {
 pub struct Wordlist(Vec<Word>);
 
 impl Wordlist {
-    #[allow(clippy::len_without_is_empty)]
     pub fn len(&self) -> usize {
         self.0.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
     }
 
     pub fn iter(&self) -> ::std::slice::Iter<Word> {
