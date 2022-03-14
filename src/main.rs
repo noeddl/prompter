@@ -488,9 +488,7 @@ impl<P: AsRef<Path>> From<P> for Wordlist {
         let file = File::open(path).expect("file not found!");
         let reader = BufReader::new(file);
 
-        let words = reader.lines().map(|w| Word::from(w.unwrap())).collect();
-
-        Self(words)
+        reader.lines().map(|w| Word::from(w.unwrap())).collect()
     }
 }
 
