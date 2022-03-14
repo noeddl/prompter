@@ -10,7 +10,7 @@
 
 Archives of precompiled binaries for each [release](https://github.com/noeddl/prompter/releases) of `prompter` are available for Windows, macOS and Linux.
 
-If you are a Rust programmer, `prompter` can be installed with `cargo`.
+In addition, `prompter` can be installed with `cargo`.
 
 ```
 $ cargo install prompter
@@ -34,23 +34,64 @@ In each round, `prompter` presents you the 10 best-ranked words and asks you to 
 $ prompter simulate --start <WORD> --target <WORD>
 ```
 
-This subcommand simulates a game where `start` is the first word to be guessed and `target` is the mystery word that `prompter` tries to find. The next word after `start` is chosen by always "guessing" the word to which the algorithm assigns the highest score (words that have the same score are sorted lexicographically).
+This subcommand simulates a game where `--start` is the first word to be guessed and `--target` is the mystery word that `prompter` tries to find. The next word after the start word is chosen by always "guessing" the word to which the algorithm assigns the highest score (words that have the same score are sorted lexicographically).
 
-[Beispiel]
+```
+$ prompter simulate --start trace --target today
+trace -> today
+
+---[ Round #1 ]------------------------------------------------
+
+2314 candidate words left.
+Top candidate word: trace
+
+---[ Round #2 ]------------------------------------------------
+
+21 candidate words left.
+Top candidate word: talon
+
+---[ Round #3 ]------------------------------------------------
+
+2 candidate words left.
+Top candidate word: today
+
+I won after 3 rounds.
+trace -> today: Won after 3 rounds
+```
 
 If no `--target` is given, `--start` is tested against all words in the wordlist.
 
-[Beispiel]
+```
+$ prompter simulate --start trace
+trace -> aback: Won after 3 rounds
+trace -> abase: Won after 3 rounds
+trace -> abate: Won after 3 rounds
+trace -> abbey: Won after 4 rounds
+trace -> abbot: Won after 4 rounds
+trace -> abhor: Won after 3 rounds
+trace -> abide: Won after 3 rounds
+...
+```
 
 Using this subcommand without any arguments runs the simulation on all combinations of words in the wordlist which takes several hours.
 
-[Beispiel]
+```
+$ prompter simulate
+With start word "aback", I won 2298 / 2314 games (99.31 %) in on average 3.89 rounds.
+With start word "abase", I won 2298 / 2314 games (99.31 %) in on average 3.79 rounds.
+With start word "abate", I won 2294 / 2314 games (99.14 %) in on average 3.77 rounds.
+With start word "abbey", I won 2291 / 2314 games (99.01 %) in on average 3.89 rounds.
+With start word "abbot", I won 2302 / 2314 games (99.48 %) in on average 3.82 rounds.
+With start word "abhor", I won 2299 / 2314 games (99.35 %) in on average 3.72 rounds.
+With start word "abide", I won 2295 / 2314 games (99.18 %) in on average 3.69 rounds.
+...
+```
 
-The results of running all simulations can be found in the file [data/results.csv](https://github.com/noeddl/prompter/blob/main/data/results.csv)
+The results of running all simulations can be found in the file [data/results.csv](https://github.com/noeddl/prompter/blob/main/data/results.csv).
 
 ## Algorithm
 
-`prompter`'s algorithm follows the simple intuition that a "good" word (or a good sequence of words) should eliminate a many candidates as possible. The idea is to find words that can "split" the wordlist in as many different ways as possible. For each word `w1` in the wordlist, `prompter` computes the color codes that Wordle would assign to each other word `w2` in the wordlist if the user playing the game wrote `w1` while `w2` is the target word to be found:
+`prompter`'s algorithm follows the simple intuition that a "good" word (or a good sequence of words) should eliminate as many candidates as possible. The idea is to find words that can "split" the wordlist in as many different ways as possible. For each word `w1` in the wordlist, `prompter` computes the color codes that Wordle would assign to each other word `w2` in the wordlist if the user playing the game wrote `w1` while `w2` is the mystery word to be found:
 
 |  w1   |  w2   | Code  |
 |-------|-------|-------|
@@ -60,7 +101,7 @@ The results of running all simulations can be found in the file [data/results.cs
 | aback | abbey | GGXXX |
 | ...   | ...   | ...   |
 
-The number of color codes that `w1` can elicit is `w1`'s score. The higher the score, the better is a word considered a good next word. This calculation is repeated in each round on the remaining words after the Wordle's hints from previous rounds have been applied (i.e. `prompter` is always playing "hard mode").
+The number of color codes that `w1` can elicit is `w1`'s score. Words with high scores are considered to be good words for the next move in the game. This calculation is repeated in each round on the remaining words after Wordle's hints from previous rounds have been applied (i.e. `prompter` is always playing in "hard mode").
 
 ## Wordlist
 
