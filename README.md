@@ -4,6 +4,8 @@
 
 ## Demo
 
+![Demo of how prompter is run in the terminal](demo.gif)
+
 ## Install
 
 Archives of precompiled binaries for each [release](https://github.com/noeddl/prompter/releases) of `prompter` are available for Windows, macOS and Linux.
