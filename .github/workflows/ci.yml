@@ -1,0 +1,128 @@
+name: Continuous integration
+
+on: [push, pull_request]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust:
+          - stable
+          - beta
+          - nightly
+          - 1.56.0  # MSRV
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          override: true
+          components: rustfmt, clippy
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [ci]
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            rust: stable
+            target: x86_64-unknown-linux-gnu
+            bin: prompter
+            name: prompter-x86_64-unknown-linux-gnu.tar.gz
+          - os: ubuntu-latest
+            rust: stable
+            target: x86_64-unknown-linux-musl
+            bin: prompter
+            name: prompter-x86_64-unknown-linux-musl.tar.gz
+          - os: ubuntu-latest
+            rust: stable
+            target: arm-unknown-linux-gnueabihf
+            bin: prompter
+            name: prompter-arm-unknown-linux-gnueabihf.tar.gz
+          - os: windows-latest
+            rust: stable
+            target: x86_64-pc-windows-msvc
+            bin: prompter.exe
+            name: prompter-x86_64-pc-windows-msvc.zip
+          - os: windows-latest
+            rust: stable
+            target: x86_64-pc-windows-gnu
+            bin: prompter.exe
+            name: prompter-x86_64-pc-windows-gnu.zip
+          - os: windows-latest
+            rust: stable
+            target: i686-pc-windows-msvc
+            bin: prompter.exe
+            name: prompter-i686-pc-windows-msvc.zip
+          - os: macOS-latest
+            rust: stable
+            target: x86_64-apple-darwin
+            bin: prompter
+            name: prompter-x86_64-apple-darwin.tar.gz
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+          target: ${{ matrix.target }}
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Run build
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: true
+          command: build
+          args: --release --target ${{ matrix.target }}
+
+      - name: Package
+        shell: bash
+        run: |
+          if [[ "${{ matrix.target }}" != "arm-unknown-linux-gnueabihf" ]]
+          then
+            strip target/${{ matrix.target }}/release/${{ matrix.bin }}
+          fi
+          cd target/${{ matrix.target }}/release
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]
+          then
+            7z a ../../../${{ matrix.name }} ${{ matrix.bin }}
+          else
+            tar czvf ../../../${{ matrix.name }} ${{ matrix.bin }}
+          fi
+          cd -
+
+      - name: Publish
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          files: 'prompter*'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
