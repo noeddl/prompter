@@ -19,9 +19,6 @@ const WORD_LEN: usize = 5;
 /// Number of rounds to play.
 const ROUND_NUM: usize = 6;
 
-/// Path to wordlist.
-const WORDLIST_PATH: &str = "data/words.txt";
-
 #[derive(Parser)]
 #[clap(name = "prompter")]
 #[clap(about = "A Wordle solver in Rust", long_about = None)]
@@ -82,7 +79,7 @@ fn plural(number: usize) -> String {
 fn play() {
     println!("Welcome! Let's play Wordle.");
 
-    let mut wordlist = Wordlist::from(WORDLIST_PATH);
+    let mut wordlist = Wordlist::load();
 
     for i in 1..=ROUND_NUM {
         println!(
@@ -145,7 +142,7 @@ fn play() {
 }
 
 fn simulate(start: &Word, target: &Word) -> Option<usize> {
-    let mut wordlist = Wordlist::from(WORDLIST_PATH);
+    let mut wordlist = Wordlist::load();
 
     debug!("{} -> {}", start, target);
 
@@ -205,7 +202,7 @@ fn word_iter<'a>(
 }
 
 fn simulate_all(start: Option<&String>, target: Option<&String>) {
-    let wordlist = Wordlist::from(WORDLIST_PATH);
+    let wordlist = Wordlist::load();
 
     let start_word = start.map(Word::from);
     let start_words = word_iter(start_word.as_ref(), &wordlist);
@@ -454,6 +451,12 @@ impl fmt::Display for Word {
 pub struct Wordlist(Vec<Word>);
 
 impl Wordlist {
+    pub fn load() -> Self {
+        let words = include_str!("words.txt");
+
+        words.lines().map(Word::from).collect()
+    }
+
     pub fn len(&self) -> usize {
         self.0.len()
     }
