@@ -10,7 +10,7 @@
 
 Archives of precompiled binaries for each [release](https://github.com/noeddl/prompter/releases) of `prompter` are available for Windows, macOS and Linux.
 
-In addition, `prompter` can be installed with `cargo`.
+Alternatively, `prompter` can be installed with `cargo`.
 
 ```
 $ cargo install prompter
@@ -73,7 +73,7 @@ trace -> abide: Won after 3 rounds
 ...
 ```
 
-Using this subcommand without any arguments runs the simulation on all combinations of words in the wordlist which takes several hours.
+Using this subcommand without any arguments runs the simulation on all combinations of words in the wordlist. This takes several hours to run.
 
 ```
 $ prompter simulate
@@ -91,7 +91,7 @@ The results of running all simulations can be found in the file [data/results.cs
 
 ## Algorithm
 
-`prompter`'s algorithm follows the simple intuition that a "good" word (or a good sequence of words) should eliminate as many candidates as possible. The idea is to find words that can "split" the wordlist in as many different ways as possible. For each word `w1` in the wordlist, `prompter` computes the color codes that Wordle would assign to each other word `w2` in the wordlist if the user playing the game wrote `w1` while `w2` is the mystery word to be found:
+`prompter`'s algorithm follows the simple intuition that a "good" word (or a good sequence of words) should eliminate as many candidates as possible. The idea is to find words that can "split" the wordlist in as many different ways as possible. For each word `w1` in the wordlist, `prompter` computes the color codes that Wordle would assign to each other word `w2` in the wordlist if the player guessed `w1` while `w2` is the mystery word to be found.
 
 |  w1   |  w2   | Code  |
 |-------|-------|-------|
@@ -101,7 +101,7 @@ The results of running all simulations can be found in the file [data/results.cs
 | aback | abbey | GGXXX |
 | ...   | ...   | ...   |
 
-The number of color codes that `w1` can elicit is `w1`'s score. Words with high scores are considered to be good words for the next move in the game. This calculation is repeated in each round on the remaining words after Wordle's hints from previous rounds have been applied (i.e. `prompter` is always playing in "hard mode").
+The number of color codes that `w1` can elicit is `w1`'s score. Words with high scores are considered to be good words for the next move in the game. This calculation is repeated in each round for the remaining words after Wordle's hints from previous rounds have been applied (i.e. `prompter` is always playing in "hard mode").
 
 ## Wordlist
 
