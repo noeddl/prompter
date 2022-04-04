@@ -452,9 +452,7 @@ pub struct Wordlist(Vec<Word>);
 
 impl Wordlist {
     pub fn load() -> Self {
-        let words = include_str!("words.txt");
-
-        words.lines().map(Word::from).collect()
+        include_str!("words.txt").lines().map(Word::from).collect()
     }
 
     pub fn len(&self) -> usize {
