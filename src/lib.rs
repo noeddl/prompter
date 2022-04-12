@@ -1,3 +1,6 @@
+//! `prompter` is a command line tool that helps you choose the next word in a game
+//! of [Wordle](https://www.nytimes.com/games/wordle/index.html) - just like a promper
+//! in a theater tells the actors what to say next in case they forget.
 use std::{
     collections::HashSet,
     error::Error,
@@ -11,6 +14,7 @@ use std::{
 use itertools::Itertools;
 
 #[derive(Debug)]
+/// Error type to handle errors in the user's input
 pub enum InputError {
     InvalidColorCode(char),
     IncorrectWordLength(usize),
@@ -34,24 +38,33 @@ impl fmt::Display for InputError {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+/// A constraint that encodes information about a given character and a given position in a [`Word`]
 pub enum Constraint {
+    /// The given character is at the given position.
     AtPos(usize, char),
+    /// The given character is *not* at the given position but somewhere else in the word.
     NotAtPos(usize, char),
+    /// The given character is not in the word at any position.
     Absent(char),
 }
 
 #[derive(Debug, PartialEq, Eq, Hash)]
+/// A set of [`Constraint`]s that can be used to filter the [`Word`]s in a [`Wordlist`]
 pub struct ConstraintSet {
+    /// Set of constraints. Each index in the `Vec` corresponds to a position in the word.
     constraints: Vec<Constraint>,
+    /// List of characters that have been found to be present in the word.
     present_chars: Vec<char>,
 }
 
 impl ConstraintSet {
+    /// Returns an iterator over the constraints in the set.
     pub fn iter(&self) -> ::std::slice::Iter<Constraint> {
         self.constraints.iter()
     }
 
     #[allow(clippy::needless_collect)]
+    /// Returns true if the given `word` complies to all the constraints in the set.
     pub fn is_match(&self, word: &Word) -> bool {
         use Constraint::*;
 
@@ -75,6 +88,8 @@ impl ConstraintSet {
         true
     }
 
+    /// Returns `true` if the `ConstraintSet` encodes a correct guess, i.e. all the characters
+    /// are at the correct position (corresponds to the code `GGGGG`).
     pub fn correct_word(&self) -> bool {
         self.iter().all(|c| matches!(c, Constraint::AtPos(_, _)))
     }
@@ -83,6 +98,7 @@ impl ConstraintSet {
 impl TryFrom<(&str, &str)> for ConstraintSet {
     type Error = InputError;
 
+    /// Try to create a `ConstraintSet` from an input word and string representing a color code.
     fn try_from(input: (&str, &str)) -> Result<Self, Self::Error> {
         let (word, colors) = input;
 
@@ -137,21 +153,38 @@ impl<'a> IntoIterator for &'a ConstraintSet {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+/// A candidate or mystery word in a Wordle game
 pub struct Word(String);
 
 impl Word {
+    /// Returns `true` if the word contains the given character.
     pub fn contains(&self, c: char) -> bool {
         self.0.contains(c)
     }
 
+    /// Returns the the character at the given `index` in the word.
     pub fn char(&self, index: usize) -> char {
         self.0.chars().nth(index).unwrap()
     }
 
+    /// Returns an iterator over the characters in the word.
     pub fn chars(&self) -> impl Iterator<Item = char> + '_ {
         self.0.chars()
     }
 
+    /// Returns a string representing the color code that Wordle would present
+    /// for a target word `w`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use prompter::Word;
+    /// let w1 = Word::from("crate");
+    /// let w2 = Word::from("space");
+    ///
+    /// assert_eq!(w1.match_code(&w2), "YXGXG");
+    /// assert_eq!(w2.match_code(&w1), "XXGYG");
+    /// ```
     pub fn match_code(&self, w: &Word) -> String {
         self.chars()
             .zip(w.chars())
@@ -167,6 +200,8 @@ impl Word {
             .collect()
     }
 
+    /// Computes the number of different color codes that are assigned to the `Word`
+    /// when matched against every other word in the wordlist.
     pub fn filter_potential(&self, wordlist: &Wordlist) -> usize {
         let constraints: HashSet<_> = wordlist.iter().map(|w| self.match_code(w)).collect();
 
@@ -175,6 +210,7 @@ impl Word {
 }
 
 impl<S: AsRef<str>> From<S> for Word {
+    /// Creates a `Word` from a type that can automatically be dereferenced into a `str`.
     fn from(s: S) -> Self {
         Self(s.as_ref().to_string())
     }
@@ -187,35 +223,47 @@ impl fmt::Display for Word {
 }
 
 #[derive(Default)]
+/// A list of [`Word`]s
 pub struct Wordlist(Vec<Word>);
 
 impl Wordlist {
+    /// Loads the default wordlist from a file.
     pub fn load() -> Self {
         include_str!("words.txt").lines().map(Word::from).collect()
     }
 
+    /// Returns the number of words in the list.
     pub fn len(&self) -> usize {
         self.0.len()
     }
 
+    /// Returns `true` if no words are in the list.
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
 
+    /// Returns an iterator over references to the words in the list.
     pub fn iter(&self) -> ::std::slice::Iter<Word> {
         self.0.iter()
     }
 
+    /// Returns an iterator over the words in the list that comply to the given `constraints`.
     pub fn filter(self, constraints: &ConstraintSet) -> impl Iterator<Item = Word> + '_ {
         self.into_iter().filter(|w| constraints.is_match(w))
     }
 
+    /// Ranks the words in the list by their [`filter_potential`] and returns an iterator
+    /// over pairs of word references and scores. The return values are sorted by the score
+    /// in descending order. Two words with the same score will be sorted lexicographically.
+    ///
+    /// [`filter_potential`]: Word::filter_potential
     pub fn rank_words(&self) -> impl Iterator<Item = (&Word, usize)> {
         self.iter()
             .map(|w| (w, w.filter_potential(self)))
             .sorted_by(|a, b| (b.1).cmp(&a.1))
     }
 
+    /// Removes the given `word` from the list if it exists.
     pub fn remove(&mut self, word: &str) {
         if let Some(index) = self.iter().position(|w| w.0 == word) {
             self.0.remove(index);
@@ -224,6 +272,7 @@ impl Wordlist {
 }
 
 impl<P: AsRef<Path>> From<P> for Wordlist {
+    /// Loads a wordlist from a text file.
     fn from(path: P) -> Self {
         let file = File::open(path).expect("file not found!");
         let reader = BufReader::new(file);
