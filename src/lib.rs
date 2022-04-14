@@ -120,7 +120,7 @@ impl TryFrom<(&str, &str)> for ConstraintSet {
                     present_chars.push(c);
                     Constraint::NotAtPos(i, c)
                 }
-                'X' => Constraint::Absent(c),
+                '_' => Constraint::Absent(c),
                 c => return Err(InputError::InvalidColorCode(c)),
             };
 
@@ -182,8 +182,8 @@ impl Word {
     /// let w1 = Word::from("crate");
     /// let w2 = Word::from("space");
     ///
-    /// assert_eq!(w1.match_code(&w2), "YXGXG");
-    /// assert_eq!(w2.match_code(&w1), "XXGYG");
+    /// assert_eq!(w1.match_code(&w2), "Y_G_G");
+    /// assert_eq!(w2.match_code(&w1), "__GYG");
     /// ```
     pub fn match_code(&self, w: &Word) -> String {
         self.chars()
@@ -194,7 +194,7 @@ impl Word {
                 } else if w.contains(c1) {
                     'Y'
                 } else {
-                    'X'
+                    '_'
                 }
             })
             .collect()
@@ -323,22 +323,22 @@ mod tests {
         target,
         is_match,
         case("words", "GGGGG", "words", true),
-        case("abcde", "XXXXX", "fghij", true),
-        case("choir", "XXXXY", "wrung", true),
-        case("child", "XYYYX", "light", true),
-        case("stole", "YYGXG", "those", true),
-        case("raise", "XXGGX", "moist", true),
-        case("slate", "XGYYY", "pleat", true),
-        case("blast", "XGYXG", "aloft", true),
-        case("raise", "YXXXY", "elder", true),
-        case("brink", "YYYYX", "robin", true),
-        case("phase", "XGGYG", "shake", true),
-        case("armor", "GGYYX", "aroma", true),
-        case("canal", "GGXXY", "caulk", true),
-        case("robot", "YYXXY", "thorn", true),
-        case("nylon", "XXXYG", "thorn", true),
-        case("tacit", "GXXXX", "thorn", true),
-        case("crate", "XXYGX", "haste", false)
+        case("abcde", "_____", "fghij", true),
+        case("choir", "____Y", "wrung", true),
+        case("child", "_YYY_", "light", true),
+        case("stole", "YYG_G", "those", true),
+        case("raise", "__GG_", "moist", true),
+        case("slate", "_GYYY", "pleat", true),
+        case("blast", "_GY_G", "aloft", true),
+        case("raise", "Y___Y", "elder", true),
+        case("brink", "YYYY_", "robin", true),
+        case("phase", "_GGYG", "shake", true),
+        case("armor", "GGYY_", "aroma", true),
+        case("canal", "GG__Y", "caulk", true),
+        case("robot", "YY__Y", "thorn", true),
+        case("nylon", "___YG", "thorn", true),
+        case("tacit", "G____", "thorn", true),
+        case("crate", "__YG_", "haste", false)
     )]
     fn test_is_match(input: &str, code: &str, target: &str, is_match: bool) {
         let constraint_set = ConstraintSet::try_from((input, code)).unwrap();

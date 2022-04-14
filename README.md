@@ -26,7 +26,13 @@ You can use `prompter` in two ways: Either by letting it help you interactively 
 $ prompter play
 ```
 
-In each round, `prompter` presents you the 10 best-ranked words and asks you to input the word that you guessed in this round followed by a code representing the colors shown by Wordle (G = Green, Y = Yellow, X = Gray). See also the demo above.
+In each round, `prompter` presents you the 10 best-ranked words and asks you to input the word that you guessed in this round followed by a character code representing the colors shown by Wordle. 
+
+`G` = Green \
+`Y` = Yellow \
+`_` (underscore) = Gray
+
+See also the demo above.
 
 ### Simulate one or several games
 
@@ -96,9 +102,9 @@ The results of running all simulations can be found in the file [data/results.cs
 |  w1   |  w2   | Code  |
 |-------|-------|-------|
 | aback | aback | GGGGG |
-| aback | abase | GGGXX |
-| aback | abate | GGGXX |
-| aback | abbey | GGXXX |
+| aback | abase | GGG\_\_ |
+| aback | abate | GGG\_\_ |
+| aback | abbey | GG\_\_\_ |
 | ...   | ...   | ...   |
 
 The number of color codes that `w1` can elicit is `w1`'s score. Words with high scores are considered to be good words for the next move in the game. This calculation is repeated in each round for the remaining words after Wordle's hints from previous rounds have been applied (i.e. `prompter` is always playing in "hard mode").

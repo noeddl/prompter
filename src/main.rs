@@ -253,7 +253,7 @@ fn get_user_word(i: usize) -> Result<String, InputError> {
 }
 
 fn get_contraints(word: &str) -> Result<ConstraintSet, InputError> {
-    println!("\nPlease enter Wordle's answer. (G = Green, Y = Yellow, X = Gray)");
+    println!("\nPlease enter Wordle's answer. (G = Green, Y = Yellow, _ = Gray)");
     let colors = user_input();
 
     if colors.len() != WORD_LEN {
