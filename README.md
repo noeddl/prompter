@@ -29,7 +29,7 @@ You can also use `prompter` as a library by adding a corresponding entry to your
 prompter = "0.1"
 ```
 
-The documentatiion can be found [here](https://docs.rs/prompter/).
+The documentation can be found [here](https://docs.rs/prompter/).
 
 ## Usage
 
