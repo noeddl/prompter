@@ -1,5 +1,11 @@
 # prompter
 
+[![Crates.io](https://img.shields.io/crates/v/prompter)](https://crates.io/crates/prompter)
+[![Documentation](https://docs.rs/prompter/badge.svg)](https://docs.rs/prompter)
+[![prompter](https://github.com/noeddl/prompter/actions/workflows/ci.yml/badge.svg)](https://github.com/noeddl/prompter/actions/workflows/ci.yml)
+[![license](https://img.shields.io/crates/l/prompter)](#license)
+[![rustc](https://img.shields.io/badge/rustc-1.59+-lightgray.svg)](https://blog.rust-lang.org/2022/02/24/Rust-1.59.0.html)
+
 `prompter` is a command line tool that helps you choose the next word in a game of [Wordle](https://www.nytimes.com/games/wordle/index.html) - just like a promper in a theater tells the actors what to say next in case they forget.
 
 ## Demo
