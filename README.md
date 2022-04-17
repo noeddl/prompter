@@ -16,6 +16,13 @@ Alternatively, `prompter` can be installed with `cargo`.
 $ cargo install prompter
 ```
 
+You can also use `prompter` as a library by adding a corresponding entry to your `Cargo.toml` dependency list.
+
+```
+[dependencies]
+prompter = "0.1"
+```
+
 ## Usage
 
 You can use `prompter` in two ways: Either by letting it help you interactively during a game of Wordle or by letting it play by itself simulating how a game with a certain start and target word would have turned out.
