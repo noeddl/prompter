@@ -19,7 +19,7 @@ log = "0.4"
 itertools = "0.10"
 
 [dev-dependencies]
-rstest = "0.12"
+rstest = "0.13"
 
 [profile.release]
 strip="debuginfo"
