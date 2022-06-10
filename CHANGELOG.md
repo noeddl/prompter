@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.1.2] - 2022-06-10
+
+* Update depencies to remove vulnerability in regex 1.5.4.
+
 ## [0.1.1] - 2022-04-17
 
 * Replace `X` with `_` in Wordle hints for better readability.
