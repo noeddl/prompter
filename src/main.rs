@@ -1,7 +1,11 @@
-use std::io::{self, Write};
+use std::{
+    collections::HashMap,
+    io::{self, Write},
+};
 
 use clap::{Parser, Subcommand};
 use env_logger::{Builder, Target};
+use itertools::Itertools;
 use log::{debug, info, LevelFilter};
 use prompter::*;
 
@@ -33,6 +37,11 @@ enum Commands {
         #[clap(long, short, requires = "start", value_name = "WORD")]
         target: Option<String>,
     },
+    /// Show the different "buckets" in which the words in the wordlist are sorted for WORD
+    Buckets {
+        #[clap(value_name = "WORD")]
+        word: String,
+    },
 }
 
 fn main() {
@@ -58,6 +67,30 @@ fn main() {
             builder.filter_level(level);
             builder.init();
             simulate_all(start.as_ref(), target.as_ref());
+        }
+        Commands::Buckets { word } => {
+            let word = Word::from(word);
+
+            let wordlist = Wordlist::load();
+
+            let mut map = HashMap::new();
+
+            for w in &wordlist {
+                let code = word.match_code(w);
+
+                let vec = map.entry(code).or_insert_with(Vec::new);
+                vec.push(w);
+            }
+
+            println!("\"{}\" has {} Wordle buckets.", word, map.len());
+
+            for (code, words) in map.iter().sorted() {
+                println!("\n{} ({} word{})", code, words.len(), plural(words.len()));
+
+                for w in words {
+                    println!("{}", w);
+                }
+            }
         }
     }
 }
