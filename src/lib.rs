@@ -186,7 +186,7 @@ impl Word {
     /// assert_eq!(w2.match_code(&w1), "__GYG");
     /// ```
     pub fn match_code(&self, w: &Word) -> String {
-        let mut target_chars: HashSet<_> = self
+        let mut target_chars: Vec<_> = self
             .chars()
             .zip(w.chars())
             .filter(|(c1, c2)| c1 != c2)
@@ -198,8 +198,8 @@ impl Word {
             .map(|(c1, c2)| {
                 if c1 == c2 {
                     'G'
-                } else if target_chars.contains(&c1) {
-                    target_chars.remove(&c1);
+                } else if let Some(index) = target_chars.iter().position(|c| c == &c1) {
+                    target_chars.remove(index);
                     'Y'
                 } else {
                     '_'
