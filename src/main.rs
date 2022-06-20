@@ -192,10 +192,11 @@ fn simulate(start: &Word, target: &Word) -> Option<usize> {
             return Some(i);
         }
 
+        let w_string = w.to_string();
         let color_code = w.match_code(target);
         debug!("Wordle hint: {}", color_code);
 
-        let constraints = ConstraintSet::try_from((w.to_string().as_ref(), color_code.as_ref()));
+        let constraints = ConstraintSet::try_from((w_string.as_ref(), color_code.as_ref()));
 
         if constraints.as_ref().unwrap().correct_word() {
             debug!("\nI won after {} round{}.", i, plural(i));
@@ -203,6 +204,7 @@ fn simulate(start: &Word, target: &Word) -> Option<usize> {
         }
 
         wordlist = Wordlist::from_iter(wordlist.filter(&constraints.unwrap()));
+        wordlist.remove(&w_string);
 
         if wordlist.len() > 1 && i == ROUND_NUM {
             debug!("\n{} candidate words left.", wordlist.len());
