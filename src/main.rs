@@ -193,6 +193,7 @@ fn simulate(start: &Word, target: &Word) -> Option<usize> {
         }
 
         let color_code = w.match_code(target);
+        debug!("Wordle hint: {}", color_code);
 
         let constraints = ConstraintSet::try_from((w.to_string().as_ref(), color_code.as_ref()));
 
