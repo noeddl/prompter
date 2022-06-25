@@ -230,11 +230,15 @@ impl fmt::Display for Word {
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 /// A list of [`Word`]s
 pub struct Wordlist(Vec<Word>);
 
 impl Wordlist {
+    pub fn new(words: Vec<Word>) -> Self {
+        Self(words)
+    }
+
     /// Loads the default wordlist from a file.
     pub fn load() -> Self {
         include_str!("words.txt").lines().map(Word::from).collect()

@@ -166,54 +166,70 @@ fn play() {
     }
 }
 
-fn simulate(start: &Word, target: &Word) -> Option<usize> {
-    let mut wordlist = Wordlist::load();
-
-    debug!("{} -> {}", start, target);
-
-    for i in 1..=ROUND_NUM {
-        debug!(
-            "\n---[ Round #{} ]------------------------------------------------",
-            i
-        );
-
-        let w_count = wordlist.len();
-        debug!("\n{} candidate word{} left.", w_count, plural(w_count));
-
-        let w = match i {
-            1 => start,
-            _ => wordlist.rank_words().next().unwrap().0,
-        };
-
-        debug!("Top candidate word: {}", w);
-
-        if wordlist.len() == 1 {
-            debug!("\nI won after {} round{}.", i, plural(i));
-            return Some(i);
-        }
-
-        let w_string = w.to_string();
-        let color_code = w.match_code(target);
-        debug!("Wordle hint: {}", color_code);
-
-        let constraints = ConstraintSet::try_from((w_string.as_ref(), color_code.as_ref()));
-
-        if constraints.as_ref().unwrap().correct_word() {
-            debug!("\nI won after {} round{}.", i, plural(i));
-            return Some(i);
-        }
-
-        wordlist = Wordlist::from_iter(wordlist.filter(&constraints.unwrap()));
-        wordlist.remove(&w_string);
-
-        if wordlist.len() > 1 && i == ROUND_NUM {
-            debug!("\n{} candidate words left.", wordlist.len());
-            debug!("\nGame over.");
-            break;
-        }
+fn simulate(
+    start_word: &Word,
+    target_words: &[Word],
+    wordlist: &Wordlist,
+    round: usize,
+    target2score: &mut HashMap<Word, usize>,
+) {
+    if round == 1 {
+        debug!("{} -> {}", start_word, target_words[0]);
     }
 
-    None
+    debug!(
+        "\n---[ Round #{} ]------------------------------------------------",
+        round
+    );
+
+    let w_count = wordlist.len();
+    debug!("\n{} candidate word{} left.", w_count, plural(w_count));
+
+    debug!("Top candidate word: {}", start_word);
+
+    let mut code2targets = HashMap::new();
+
+    for t in target_words {
+        let code = start_word.match_code(t);
+        let words = code2targets.entry(code).or_insert_with(Vec::new);
+        words.push(t.clone());
+    }
+
+    for (code, targets) in code2targets.iter().sorted() {
+        debug!("Wordle hint: {}", code);
+
+        if code == "GGGGG" {
+            debug!("");
+
+            for t in targets {
+                target2score.insert(t.clone(), round);
+            }
+        } else {
+            let constraints =
+                ConstraintSet::try_from((start_word.to_string().as_ref(), code.as_ref()));
+            let mut wordlist = Wordlist::new(
+                wordlist
+                    .clone()
+                    .filter(&constraints.unwrap())
+                    .into_iter()
+                    .collect(),
+            );
+            wordlist.remove(start_word.to_string().as_ref());
+
+            let (start_word, _rank) = wordlist.rank_words().next().unwrap();
+
+            if round == ROUND_NUM {
+                debug!("\n{} candidate words left.", wordlist.len());
+                debug!("\nGame over.");
+
+                for t in targets {
+                    target2score.insert(t.clone(), round + 1);
+                }
+            } else {
+                simulate(&start_word, &targets, &wordlist, round + 1, target2score);
+            }
+        }
+    }
 }
 
 fn word_iter<'a>(
@@ -241,8 +257,18 @@ fn simulate_all(start: Option<&String>, target: Option<&String>) {
         let target_word = target.map(Word::from);
         let target_words = word_iter(target_word.as_ref(), &wordlist);
 
-        for t in target_words {
-            if let Some(score) = simulate(s, t) {
+        let mut target2score = HashMap::new();
+
+        simulate(
+            &s,
+            target_words.cloned().collect::<Vec<_>>().as_ref(),
+            &wordlist,
+            1,
+            &mut target2score,
+        );
+
+        for (t, &score) in target2score.iter().sorted() {
+            if score <= ROUND_NUM {
                 scores.push(score);
                 info!("{} -> {}: Won after {} round{}", s, t, score, plural(score));
             } else {
