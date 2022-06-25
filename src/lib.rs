@@ -186,12 +186,20 @@ impl Word {
     /// assert_eq!(w2.match_code(&w1), "__GYG");
     /// ```
     pub fn match_code(&self, w: &Word) -> String {
+        let mut target_chars: Vec<_> = self
+            .chars()
+            .zip(w.chars())
+            .filter(|(c1, c2)| c1 != c2)
+            .map(|(_c1, c2)| c2)
+            .collect();
+
         self.chars()
             .zip(w.chars())
             .map(|(c1, c2)| {
                 if c1 == c2 {
                     'G'
-                } else if w.contains(c1) {
+                } else if let Some(index) = target_chars.iter().position(|c| c == &c1) {
+                    target_chars.remove(index);
                     'Y'
                 } else {
                     '_'
@@ -324,6 +332,7 @@ mod tests {
         is_match,
         case("words", "GGGGG", "words", true),
         case("abcde", "_____", "fghij", true),
+        case("steal", "YYYYY", "least", true),
         case("choir", "____Y", "wrung", true),
         case("child", "_YYY_", "light", true),
         case("stole", "YYG_G", "those", true),
@@ -338,11 +347,46 @@ mod tests {
         case("robot", "YY__Y", "thorn", true),
         case("nylon", "___YG", "thorn", true),
         case("tacit", "G____", "thorn", true),
-        case("crate", "__YG_", "haste", false)
+        case("crate", "__YG_", "haste", false),
+        case("abase", "Y_Y__", "cacao", true),
+        case("abaka", "Y_Y__", "cacao", true),
+        case("avian", "Y__G_", "cacao", true)
     )]
     fn test_is_match(input: &str, code: &str, target: &str, is_match: bool) {
         let constraint_set = ConstraintSet::try_from((input, code)).unwrap();
 
         assert_eq!(constraint_set.is_match(&Word::from(target)), is_match);
+    }
+
+    #[rstest(
+        input,
+        target,
+        code,
+        case("words", "words", "GGGGG"),
+        case("abcde", "fghij", "_____"),
+        case("steal", "least", "YYYYY"),
+        case("choir", "wrung", "____Y"),
+        case("child", "light", "_YYY_"),
+        case("stole", "those", "YYG_G"),
+        case("raise", "moist", "__GG_"),
+        case("slate", "pleat", "_GYYY"),
+        case("blast", "aloft", "_GY_G"),
+        case("raise", "elder", "Y___Y"),
+        case("brink", "robin", "YYYY_"),
+        case("phase", "shake", "_GGYG"),
+        case("armor", "aroma", "GGYY_"),
+        case("canal", "caulk", "GG__Y"),
+        case("robot", "thorn", "YY__Y"),
+        case("nylon", "thorn", "___YG"),
+        case("tacit", "thorn", "G____"),
+        case("crate", "haste", "__YGG"),
+        case("abase", "cacao", "Y_Y__"),
+        case("abaka", "cacao", "Y_Y__"),
+        case("avian", "cacao", "Y__G_")
+    )]
+    fn test_match_code(input: &str, target: &str, code: &str) {
+        let word = Word::from(input);
+
+        assert_eq!(word.match_code(&Word::from(target)), code);
     }
 }
