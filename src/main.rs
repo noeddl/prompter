@@ -226,7 +226,7 @@ fn word_iter<'a>(
         None
     };
 
-    iter.into_iter().flatten().chain(word_opt.into_iter())
+    iter.into_iter().flatten().chain(word_opt)
 }
 
 fn simulate_all(start: Option<&String>, target: Option<&String>) {
