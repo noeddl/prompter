@@ -3,6 +3,7 @@
 ## [0.1.3] - 2024-11-04
 
 * Update dependencies to remove security issues.
+* Increase MSRV to 1.47.1.
 
 ## [0.1.2] - 2022-06-10
 

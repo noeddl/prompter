@@ -2,6 +2,7 @@
 name = "prompter"
 version = "0.1.3"
 edition = "2021"
+rust-version = "1.74.1"
 authors = ["Anett Seeker"]
 license = "MIT OR Apache-2.0"
 description = "A Wordle solver in Rust"
